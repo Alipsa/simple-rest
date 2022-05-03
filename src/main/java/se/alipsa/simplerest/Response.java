@@ -54,4 +54,12 @@ public class Response {
   public void setHeaders(Map<String, List<String>> headers) {
     this.headers = headers;
   }
+
+  public String getHeader(String headerName) {
+    List<String> values = headers.get(headerName);
+    if (values == null || values.isEmpty()) {
+      return null;
+    }
+    return values.get(0);
+  }
 }

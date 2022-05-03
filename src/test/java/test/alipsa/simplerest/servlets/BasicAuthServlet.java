@@ -1,4 +1,4 @@
-package test.alipsa.simplerest;
+package test.alipsa.simplerest.servlets;
 
 import jakarta.servlet.http.HttpServlet;
 

@@ -25,8 +25,11 @@ public class RestClient {
       URL url = new URL(urlString);
       HttpURLConnection conn = (HttpURLConnection) url.openConnection();
       conn.setRequestMethod("GET");
+      conn.connect();
       String contentType = conn.getContentType();
-      return conn.getResponseCode() == 200 && contentType != null && contentType.startsWith("image");
+      boolean result = conn.getResponseCode() == 200 && contentType != null && contentType.startsWith("image");
+      conn.disconnect();
+      return result;
     } catch (IOException e) {
       return false;
     }
@@ -41,9 +44,9 @@ public class RestClient {
       URL url = new URL(urlString);
       HttpURLConnection conn = (HttpURLConnection) url.openConnection();
       conn.setRequestMethod("GET");
-
+      conn.connect();
       if (conn.getResponseCode() != 200) {
-        throw new RestException("Misslyckades att anropa: HTTP felkod = " + conn.getResponseCode());
+        throw new RestException("GET call to " + urlString + " failed: HTTP error code = " + conn.getResponseCode());
       }
       ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
@@ -55,6 +58,7 @@ public class RestClient {
         baos.write(byteChunk, 0, n);
       }
       is.close();
+      conn.disconnect();
       return baos.toByteArray();
     }
     catch (IOException e) {
@@ -77,6 +81,7 @@ public class RestClient {
       if (headers != null) {
         headers.forEach(conn::setRequestProperty);
       }
+      conn.connect();
       int responseCode = conn.getResponseCode();
       var responseHeaders = conn.getHeaderFields();
       BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
@@ -87,82 +92,136 @@ public class RestClient {
       conn.disconnect();
       return new Response(writer.toString(), responseCode, responseHeaders);
     } catch (IOException e) {
-      throw new RestException("Failed to call " + urlString, e);
+      throw new RestException("Failed to call GET on " + urlString, e);
     }
   }
 
   public Response post(String urlString, Object payload) throws RestException {
+    return post(urlString, payload, null);
+  }
 
+  public Response post(String urlString, Object payload, Map<String, String> requestHeaders) throws RestException {
+    return putPost(urlString, payload, requestHeaders, "POST");
+  }
+
+
+  public Response put(String urlString, Object payload) throws RestException {
+    return put(urlString, payload, null);
+  }
+
+  public Response put(String urlString, Object payload, Map<String, String> requestHeaders) throws RestException {
+    return putPost(urlString, payload, requestHeaders, "PUT");
+  }
+
+  private Response putPost(String urlString, Object payload, Map<String, String> requestHeaders, String method) throws RestException {
     StringBuilder writer = new StringBuilder();
     try {
       URL url = new URL(urlString);
       HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-      conn.setDoOutput(true);
-      conn.setRequestMethod("POST");
-      conn.setRequestProperty("Content-Type", MediaType.APPLICATION_JSON.getValue());
-
-      String input;
-      if (payload instanceof CharSequence) {
-        input = String.valueOf(payload);
-      } else {
-        input = mapper.writeValueAsString(payload);
+      conn.setRequestMethod(method);
+      if (requestHeaders != null && !requestHeaders.containsKey("Content-Type")) {
+        conn.setRequestProperty("Content-Type", MediaType.APPLICATION_JSON.getValue());
       }
-      OutputStream os = conn.getOutputStream();
-      os.write(input.getBytes());
-      os.flush();
+      if (requestHeaders != null) {
+        requestHeaders.forEach(conn::setRequestProperty);
+      }
+
+      if (payload != null) {
+        conn.setDoOutput(true);
+        String input;
+        if (payload instanceof CharSequence) {
+          input = String.valueOf(payload);
+        } else {
+          input = mapper.writeValueAsString(payload);
+        }
+        conn.connect();
+        OutputStream os = conn.getOutputStream();
+        os.write(input.getBytes());
+        os.flush();
+        os.close();
+      } else {
+        conn.connect();
+      }
 
       int responseCode = conn.getResponseCode();
       var headers = conn.getHeaderFields();
 
-      BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+      if (conn.getContentLength() > 0) {
+        BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 
-      String line;
-      while ((line = br.readLine()) != null) {
-        writer.append(line).append('\n');
+        String line;
+        while ((line = br.readLine()) != null) {
+          writer.append(line).append('\n');
+        }
       }
-
       conn.disconnect();
       return new Response(writer.toString(), responseCode, headers);
 
     } catch (IOException e) {
-      throw new RestException("Failed to call " + urlString, e);
+      throw new RestException("Failed to call " + method + " on " + urlString, e);
     }
   }
 
-  public Response put(String urlString, Object payload) throws RestException {
+  public Response delete(String urlString) throws RestException {
     StringBuilder writer = new StringBuilder();
     try {
-      URL url = new URL(urlString);
-      HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-      conn.setDoOutput(true);
-      conn.setRequestMethod("PUT");
-      conn.setRequestProperty("Content-Type", MediaType.APPLICATION_JSON.getValue());
+    URL url = new URL(urlString);
+    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+    conn.setDoOutput(false);
+    conn.setRequestMethod("DELETE");
+    conn.setRequestProperty("Content-Type", MediaType.APPLICATION_JSON.getValue());
+    conn.connect();
+    int responseCode = conn.getResponseCode();
+    var headers = conn.getHeaderFields();
 
-      String input;
-      if (payload instanceof CharSequence) {
-        input = String.valueOf(payload);
-      } else {
-        input = mapper.writeValueAsString(payload);
-      }
-      OutputStream os = conn.getOutputStream();
-      os.write(input.getBytes());
-      os.flush();
-
-      int responseCode = conn.getResponseCode();
-      var headers = conn.getHeaderFields();
-
+    if (conn.getContentLength() > 0) {
       BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-
       String line;
       while ((line = br.readLine()) != null) {
         writer.append(line).append('\n');
       }
-
-      conn.disconnect();
-      return new Response(writer.toString(), responseCode, headers);
-
+    }
+    conn.disconnect();
+    return new Response(writer.toString(), responseCode, headers);
     } catch (IOException e) {
-      throw new RestException("Failed to call " + urlString, e);
+      throw new RestException("Failed to call DELETE on " + urlString, e);
+    }
+  }
+
+  public Response head(String urlString) throws RestException {
+    return head(urlString, null);
+  }
+
+  public Response head(String urlString, Map<String, String> headers) throws RestException {
+    return headersRequest(urlString, headers, "HEAD");
+  }
+
+  public Response options(String urlString) throws RestException {
+    return options(urlString, null);
+  }
+
+  public Response options(String urlString, Map<String, String> headers) throws RestException {
+    return headersRequest(urlString, headers, "OPTIONS");
+  }
+
+  public Response headersRequest(String urlString, Map<String, String> headers, String method) throws RestException {
+    String accept = MediaType.APPLICATION_JSON.getValue();
+
+    try {
+      URL url = new URL(urlString);
+      HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+      conn.setRequestMethod(method);
+      conn.setRequestProperty("Accept", accept);
+      if (headers != null) {
+        headers.forEach(conn::setRequestProperty);
+      }
+      conn.connect();
+      int responseCode = conn.getResponseCode();
+      var responseHeaders = conn.getHeaderFields();
+      conn.disconnect();
+      return new Response("", responseCode, responseHeaders);
+    } catch (IOException e) {
+      throw new RestException("Failed to call " + method + " on " + urlString, e);
     }
   }
 }

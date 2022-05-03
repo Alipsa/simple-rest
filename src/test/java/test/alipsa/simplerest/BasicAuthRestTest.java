@@ -1,7 +1,5 @@
 package test.alipsa.simplerest;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
@@ -9,11 +7,16 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import se.alipsa.simplerest.Response;
 import se.alipsa.simplerest.RestClient;
 import se.alipsa.simplerest.RestException;
 import test.alipsa.simplerest.model.Company;
+import test.alipsa.simplerest.servlets.BasicAuthServlet;
 
-public class RestTest {
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+
+public class BasicAuthRestTest {
 
   private static Server server;
   private static String serverUrl;
@@ -30,18 +33,10 @@ public class RestTest {
     server.addConnector(connector);
 
     ServletContextHandler context = new ServletContextHandler();
-    //ServletHolder defaultServ = new ServletHolder("default", DefaultServlet.class);
-    //defaultServ.setInitParameter("resourceBase",System.getProperty("user.dir"));
-    //defaultServ.setInitParameter("dirAllowed","true");
-    context.addServlet(SimpleServlet.class,"/simple/*");
     context.addServlet(BasicAuthServlet.class, "/basic/*");
-    context.addServlet(JwtServlet.class, "/jwt/*");
     server.setHandler(context);
-
-    // Start Server
     server.start();
 
-    // Determine Base URI for Server
     String host = connector.getHost();
     if (host == null) {
       host = "localhost";
@@ -57,7 +52,7 @@ public class RestTest {
       server.stop();
     }
     catch (Exception e) {
-      e.printStackTrace();
+      fail(e);
     }
   }
   
@@ -90,17 +85,23 @@ public class RestTest {
   }
 
   @Test
-  public void simpleDeleteTest() {
-
+  public void simpleDeleteTest() throws RestException {
+    var response = restClient.delete(serverUrl + "simple/company/123");
+    assertEquals(204, response.getResponseCode(), "delete /simple/company/123, response Code");
+    response = restClient.delete(serverUrl + "simple/company/345");
+    assertEquals(404, response.getResponseCode(), "delete /simple/company/345, response Code");
   }
 
   @Test
-  public void simpleHeadTest() {
-
+  public void simpleHeadTest() throws RestException {
+    Response response = restClient.head(serverUrl + "simple");
+    assertEquals("27", response.getHeader("Content-Length"), "Content-Length");
+    assertEquals("application/json", response.getHeader("Content-Type"));
   }
 
   @Test
-  public void simpleOptionsTest() {
-
+  public void simpleOptionsTest() throws RestException {
+    Response response = restClient.options(serverUrl + "simple");
+    System.out.println(response.getHeaders());
   }
 }
