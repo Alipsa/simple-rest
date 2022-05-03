@@ -128,4 +128,41 @@ public class RestClient {
       throw new RestException("Failed to call " + urlString, e);
     }
   }
+
+  public Response put(String urlString, Object payload) throws RestException {
+    StringBuilder writer = new StringBuilder();
+    try {
+      URL url = new URL(urlString);
+      HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+      conn.setDoOutput(true);
+      conn.setRequestMethod("PUT");
+      conn.setRequestProperty("Content-Type", MediaType.APPLICATION_JSON.getValue());
+
+      String input;
+      if (payload instanceof CharSequence) {
+        input = String.valueOf(payload);
+      } else {
+        input = mapper.writeValueAsString(payload);
+      }
+      OutputStream os = conn.getOutputStream();
+      os.write(input.getBytes());
+      os.flush();
+
+      int responseCode = conn.getResponseCode();
+      var headers = conn.getHeaderFields();
+
+      BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+
+      String line;
+      while ((line = br.readLine()) != null) {
+        writer.append(line).append('\n');
+      }
+
+      conn.disconnect();
+      return new Response(writer.toString(), responseCode, headers);
+
+    } catch (IOException e) {
+      throw new RestException("Failed to call " + urlString, e);
+    }
+  }
 }
