@@ -1,5 +1,7 @@
 package se.alipsa.simplerest;
 
+import static se.alipsa.simplerest.CommonHeaders.CONTENT_TYPE;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.*;
@@ -119,8 +121,8 @@ public class RestClient {
       URL url = new URL(urlString);
       HttpURLConnection conn = (HttpURLConnection) url.openConnection();
       conn.setRequestMethod(method);
-      if (requestHeaders != null && !requestHeaders.containsKey("Content-Type")) {
-        conn.setRequestProperty("Content-Type", MediaType.APPLICATION_JSON.getValue());
+      if (requestHeaders != null && !requestHeaders.containsKey(CONTENT_TYPE)) {
+        conn.setRequestProperty(CONTENT_TYPE, MediaType.APPLICATION_JSON.getValue());
       }
       if (requestHeaders != null) {
         requestHeaders.forEach(conn::setRequestProperty);
@@ -163,26 +165,35 @@ public class RestClient {
   }
 
   public Response delete(String urlString) throws RestException {
+    return delete(urlString, null);
+  }
+
+  public Response delete(String urlString, Map<String, String> requestHeaders) throws RestException {
     StringBuilder writer = new StringBuilder();
     try {
-    URL url = new URL(urlString);
-    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-    conn.setDoOutput(false);
-    conn.setRequestMethod("DELETE");
-    conn.setRequestProperty("Content-Type", MediaType.APPLICATION_JSON.getValue());
-    conn.connect();
-    int responseCode = conn.getResponseCode();
-    var headers = conn.getHeaderFields();
-
-    if (conn.getContentLength() > 0) {
-      BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-      String line;
-      while ((line = br.readLine()) != null) {
-        writer.append(line).append('\n');
+      URL url = new URL(urlString);
+      HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+      conn.setDoOutput(false);
+      conn.setRequestMethod("DELETE");
+      if (requestHeaders != null && !requestHeaders.containsKey(CONTENT_TYPE)) {
+        conn.setRequestProperty(CONTENT_TYPE, MediaType.APPLICATION_JSON.getValue());
       }
-    }
-    conn.disconnect();
-    return new Response(writer.toString(), responseCode, headers);
+      if (requestHeaders != null) {
+        requestHeaders.forEach(conn::setRequestProperty);
+      }
+      conn.connect();
+      int responseCode = conn.getResponseCode();
+      var headers = conn.getHeaderFields();
+
+      if (conn.getContentLength() > 0) {
+        BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+        String line;
+        while ((line = br.readLine()) != null) {
+          writer.append(line).append('\n');
+        }
+      }
+      conn.disconnect();
+      return new Response(writer.toString(), responseCode, headers);
     } catch (IOException e) {
       throw new RestException("Failed to call DELETE on " + urlString, e);
     }

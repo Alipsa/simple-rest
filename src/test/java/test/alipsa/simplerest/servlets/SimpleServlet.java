@@ -55,7 +55,7 @@ public class SimpleServlet extends HttpServlet {
   @Override
   protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
     System.out.println("In SimpleServlet.doDelete for " + req.getRequestURI());
-    if ("/simple/company/123".equals(req.getRequestURI())) {
+    if (req.getRequestURI().endsWith("/company/123")) {
       resp.setStatus(204);
     } else {
       resp.setStatus(404);

@@ -15,6 +15,8 @@ import test.alipsa.simplerest.servlets.JwtServlet;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
+import static se.alipsa.simplerest.CommonHeaders.CONTENT_LENGTH;
+import static se.alipsa.simplerest.CommonHeaders.CONTENT_TYPE;
 
 public class JwtRestTest {
 
@@ -95,8 +97,8 @@ public class JwtRestTest {
   @Test
   public void simpleHeadTest() throws RestException {
     Response response = restClient.head(serverUrl + "simple");
-    assertEquals("27", response.getHeader("Content-Length"), "Content-Length");
-    assertEquals("application/json", response.getHeader("Content-Type"));
+    assertEquals("27", response.getHeader(CONTENT_LENGTH), "Content-Length");
+    assertEquals("application/json", response.getHeader(CONTENT_TYPE));
   }
 
   @Test
