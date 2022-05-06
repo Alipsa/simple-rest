@@ -1,9 +1,7 @@
 package test.alipsa.simplerest;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
-import static se.alipsa.simplerest.CommonHeaders.CONTENT_LENGTH;
-import static se.alipsa.simplerest.CommonHeaders.CONTENT_TYPE;
+import static org.junit.jupiter.api.Assertions.*;
+import static se.alipsa.simplerest.CommonHeaders.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.eclipse.jetty.server.Server;
@@ -18,6 +16,8 @@ import se.alipsa.simplerest.RestException;
 import test.alipsa.simplerest.model.Company;
 import test.alipsa.simplerest.servlets.SimpleServlet;
 
+import java.util.List;
+
 public class SimpleRestTest {
 
   private static Server server;
@@ -28,7 +28,7 @@ public class SimpleRestTest {
 
   @BeforeAll
   public static void startJetty() throws Exception {
-    System.out.println("Starting jetty server");
+    //System.out.println("Starting jetty server");
     server = new Server();
     ServerConnector connector = new ServerConnector(server);
     connector.setPort(0); // auto-bind to available port
@@ -105,6 +105,7 @@ public class SimpleRestTest {
   @Test
   public void simpleOptionsTest() throws RestException {
     Response response = restClient.options(serverUrl + "simple");
-    System.out.println(response.getHeaders());
+    //System.out.println(response.getHeaders());
+    assertEquals("GET, HEAD, POST, PUT, DELETE, TRACE, OPTIONS", response.getHeader(ALLOW));
   }
 }

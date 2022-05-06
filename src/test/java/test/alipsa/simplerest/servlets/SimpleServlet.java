@@ -15,7 +15,7 @@ public class SimpleServlet extends HttpServlet {
 
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-    System.out.println("In SimpleServlet.doGet for " + req.getRequestURI());
+    //System.out.println("In SimpleServlet.doGet for " + req.getRequestURI());
     resp.setStatus(200);
     resp.setContentType(MediaType.APPLICATION_JSON.getValue());
     var writer = resp.getWriter();
@@ -29,7 +29,7 @@ public class SimpleServlet extends HttpServlet {
 
   @Override
   protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-    System.out.println("In SimpleServlet.doPost for " + req.getRequestURI());
+    //System.out.println("In SimpleServlet.doPost for " + req.getRequestURI());
     resp.setStatus(200);
     resp.setContentType(MediaType.APPLICATION_JSON.getValue());
     ObjectMapper mapper = new ObjectMapper();
@@ -42,7 +42,7 @@ public class SimpleServlet extends HttpServlet {
 
   @Override
   protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-    System.out.println("In SimpleServlet.doPut for " + req.getRequestURI());
+    //System.out.println("In SimpleServlet.doPut for " + req.getRequestURI());
     resp.setStatus(200);
     resp.setContentType(MediaType.APPLICATION_JSON.getValue());
     ObjectMapper mapper = new ObjectMapper();
@@ -54,7 +54,7 @@ public class SimpleServlet extends HttpServlet {
 
   @Override
   protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-    System.out.println("In SimpleServlet.doDelete for " + req.getRequestURI());
+    //System.out.println("In SimpleServlet.doDelete for " + req.getRequestURI());
     if (req.getRequestURI().endsWith("/company/123")) {
       resp.setStatus(204);
     } else {
@@ -65,7 +65,7 @@ public class SimpleServlet extends HttpServlet {
 
   @Override
   protected void doHead(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-    System.out.println("In SimpleServlet.doHead for " + req.getRequestURI());
+    //System.out.println("In SimpleServlet.doHead for " + req.getRequestURI());
     resp.setStatus(200);
     resp.setContentType(MediaType.APPLICATION_JSON.getValue());
     ObjectMapper mapper = new ObjectMapper();
@@ -76,7 +76,7 @@ public class SimpleServlet extends HttpServlet {
 
   @Override
   protected void doOptions(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-    System.out.println("In SimpleServlet.doOptions for " + req.getRequestURI());
+    //System.out.println("In SimpleServlet.doOptions for " + req.getRequestURI());
     resp.setContentType(MediaType.APPLICATION_JSON.getValue());
     super.doOptions(req, resp);
   }

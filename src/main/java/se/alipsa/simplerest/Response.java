@@ -62,4 +62,9 @@ public class Response {
     }
     return values.get(0);
   }
+
+  @Override
+  public String toString() {
+    return getResponseCode() + ", " + getPayload();
+  }
 }

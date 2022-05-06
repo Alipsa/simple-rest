@@ -17,8 +17,7 @@ import se.alipsa.simplerest.RestException;
 import test.alipsa.simplerest.model.Company;
 import test.alipsa.simplerest.servlets.SimpleServlet;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 import static se.alipsa.simplerest.CommonHeaders.*;
 
 import java.util.Map;
@@ -29,13 +28,13 @@ public class BasicAuthRestTest {
   private static String serverUrl;
   private static RestClient restClient;
 
-  private static String userName = "per";
-  private static String password = "secret";
+  private static final String userName = "per";
+  private static final String password = "secret";
 
 
   @BeforeAll
   public static void startJetty() throws Exception {
-    System.out.println("Starting BasicAuth jetty server");
+    //System.out.println("Starting BasicAuth jetty server");
     server = new Server();
     ServerConnector connector = new ServerConnector(server);
     connector.setPort(0); // auto-bind to available port
@@ -44,7 +43,7 @@ public class BasicAuthRestTest {
     ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
     context.addServlet(SimpleServlet.class, "/basic/*");
     server.setHandler(context);
-    context.setSecurityHandler(basicAuthConfig(userName, password, "myrealm"));
+    context.setSecurityHandler(basicAuthConfig());
     server.start();
 
     String host = connector.getHost();
@@ -68,6 +67,7 @@ public class BasicAuthRestTest {
   
   @Test
   public void basicGetTest() throws RestException, JsonProcessingException {
+    assertThrows(RestException.class, () -> restClient.get(serverUrl + "basic"));
     var response = restClient.get(serverUrl + "basic",
         Map.of(AUTHORIZATION, basicAuth(userName, password))
     );
@@ -134,14 +134,15 @@ public class BasicAuthRestTest {
         serverUrl + "basic",
         Map.of(AUTHORIZATION, basicAuth(userName, password))
     );
-    System.out.println(response.getHeaders());
+    //System.out.println(response.getHeaders());
+    assertEquals("GET, HEAD, POST, PUT, DELETE, TRACE, OPTIONS", response.getHeader(ALLOW));
   }
 
-  private static final SecurityHandler basicAuthConfig(String username, String password, String realm) {
+  private static SecurityHandler basicAuthConfig() {
 
     HashLoginService loginService = new HashLoginService();
     UserStore userStore = new UserStore();
-    userStore.addUser(username, new Password(password), new String[] {"users"});
+    userStore.addUser(userName, new Password(password), new String[] {"users"});
     loginService.setUserStore(userStore);
 
     Constraint constraint = new Constraint();
@@ -155,7 +156,7 @@ public class BasicAuthRestTest {
 
     ConstraintSecurityHandler csh = new ConstraintSecurityHandler();
     csh.setAuthenticator(new BasicAuthenticator());
-    csh.setRealmName(realm);
+    csh.setRealmName("myrealm");
     csh.addConstraintMapping(cm);
     csh.setLoginService(loginService);
 

@@ -77,13 +77,12 @@ String login(String userName, String password) throws RestException {
  * @return a List of Companies
  */
 List<Company> getCompanies(String jwtToken) {
-  String token = "Bearer " + jwtToken;
   var restClient = new RestClient();
   try {
     // Add the token to the header of the GET request
     Response response = restClient.get(
             "https://localhost:8080/api/company", 
-            Map.of("Authorization", token)
+            Map.of("Authorization", bearer(jwtToken))
     );
     // getObjectList return a list of the type passed in as a parameter 
     // when the payload is a JSON array or Objects
