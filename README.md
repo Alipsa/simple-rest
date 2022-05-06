@@ -45,6 +45,26 @@ use most of the API capabilities and is a good, simple resource for how the api 
   }
 ```
 
+## Basic authentication example
+
+Basic auth is simply just a matter of adding the Authorization header for each request, e.g:
+
+```groovy
+import static se.alipsa.simplerest.CommonHeaders.*
+import se.alipsa.simplerest.*;
+
+// Company is an arbitrary data object
+var company = new Company();
+company.setName("Creative Design");
+var restClient = new RestClient();
+var response = restClient.post(
+    "http://localhost:8080/companies/company",
+    company,
+    Map.of(AUTHORIZATION, basicAuth("myUserName", "myPassword"))
+);
+Company c = response.getObject(Company.class);
+```
+
 ## JSON web token example
 
 ```groovy
@@ -78,7 +98,7 @@ String login(String userName, String password) throws RestException {
 
 /**
  * Example of a method that retrieves a json array of company objects
- * @param jwtToken
+ * @param jwtToken the token retrieved using the login method above
  * @return a List of Companies
  */
 List<Company> getCompanies(String jwtToken) {
@@ -99,26 +119,6 @@ List<Company> getCompanies(String jwtToken) {
   }
   return Collections.emptyList();
 }
-```
-
-## Basic authentication example
-
-Basic auth is simply just a matter of adding the Authorization header for each request, e.g:
-
-```groovy
-import static se.alipsa.simplerest.CommonHeaders.*
-import se.alipsa.simplerest.*;
-
-// Company is an arbitrary data object
-var company = new Company();
-company.setName("Creative Design");
-var restClient = new RestClient();
-var response = restClient.post(
-    "http://localhost:8080/companies/company",
-    company,
-    Map.of(AUTHORIZATION, basicAuth("myUserName", "myPassword"))
-);
-Company c = response.getObject(Company.class);
 ```
 
 ## Third party libraries used
