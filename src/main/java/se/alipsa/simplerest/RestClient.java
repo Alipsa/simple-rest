@@ -147,9 +147,14 @@ public class RestClient {
 
       int responseCode = conn.getResponseCode();
       var headers = conn.getHeaderFields();
-
-      if (conn.getContentLength() > 0) {
-        BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+      InputStream is = null;
+      try {
+        is = conn.getInputStream();
+      } catch (IOException e) {
+        // no content
+      }
+      if (is != null) {
+        BufferedReader br = new BufferedReader(new InputStreamReader(is));
 
         String line;
         while ((line = br.readLine()) != null) {
