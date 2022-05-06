@@ -1,5 +1,7 @@
 # Release history
 
+### ver 1.0.2, in progress
+
 ### ver 1.0.1, 2022-05-06
 - Default to the Object mapper in the RestClient instead of creating a new one.
 - Add javadocs
