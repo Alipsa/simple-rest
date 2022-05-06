@@ -20,6 +20,9 @@ The Javadoc is available [here ![javadoc](https://javadoc.io/badge2/se.alipsa/si
 
 # Examples
 
+The [tests](https://github.com/Alipsa/simple-rest/tree/main/src/test/java/test/alipsa/simplerest) 
+use most of the API capabilities and is a good, simple resource for how the api works.
+
 ## Google API's example
 ```groovy
   /**
