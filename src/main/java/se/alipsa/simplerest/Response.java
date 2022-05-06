@@ -44,6 +44,7 @@ public class Response {
   /**
    * Converts the json payload into a Java object
    * @param returnClass the type of Java Object to return
+   * @param <T> the type of Java Object to return
    * @param customMapper an optional ObjectMapper
    * @return the java Object corresponding to the payload and the returnClass
    * @throws JsonProcessingException if the conversion failed.
@@ -56,6 +57,7 @@ public class Response {
   /**
    * Converts the json payload into a List of Java objects
    * @param returnClass the type of Java Object to return
+   * @param <T> the type of Java Object in the List to return
    * @param customMapper an optional ObjectMapper
    * @return a List of the type corresponding to the returnClass provided
    * @throws JsonProcessingException if the conversion failed.
