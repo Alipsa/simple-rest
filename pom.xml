@@ -6,11 +6,11 @@
 
     <groupId>se.alipsa</groupId>
     <artifactId>simple-rest</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>Spreadsheets</name>
-    <description>Read from and write to spreadsheets in Renjin R. Supports xls, xlsx, and ods files</description>
+    <name>Simple Rest</name>
+    <description>Simple, modular Rest library for java 11+</description>
     <url>https://github.com/Alipsa/spreadsheets</url>
 
     <licenses>
