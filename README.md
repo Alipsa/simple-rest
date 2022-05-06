@@ -16,7 +16,7 @@ Add the following dependency to your maven pom.xml (or equivalent for your build
 </dependency>
 ```
 
-The Javadoc is available [![here](https://javadoc.io/badge2/se.alipsa/simple-rest/javadoc.svg)](https://javadoc.io/doc/se.alipsa/simple-rest)
+The Javadoc is available [here ![javadoc](https://javadoc.io/badge2/se.alipsa/simple-rest/javadoc.svg)](https://javadoc.io/doc/se.alipsa/simple-rest)
 
 # Examples
 
