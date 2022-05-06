@@ -12,7 +12,7 @@ Add the following dependency to your maven pom.xml (or equivalent for your build
 <dependency>
     <groupId>se.alipsa</groupId>
     <artifactId>simple-rest</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 </dependency>
 ```
 
@@ -63,6 +63,7 @@ var response = restClient.post(
     Map.of(AUTHORIZATION, basicAuth("myUserName", "myPassword"))
 );
 Company c = response.getObject(Company.class);
+// Do something with c...
 ```
 
 ## JSON web token example

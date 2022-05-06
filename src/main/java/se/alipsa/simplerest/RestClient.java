@@ -139,21 +139,169 @@ public class RestClient {
     }
   }
 
+  /**
+   * Executes a HTTP POST request
+   * @param urlString the url for the target resource
+   * @param payload the content Java object to send to the server as json (json conversion is done for you)
+   * @return a response object with the header, body and response code
+   * @throws RestException if something goes wrong
+   */
   public Response post(String urlString, Object payload) throws RestException {
     return post(urlString, payload, null);
   }
 
+  /**
+   * Executes a HTTP POST request
+   * @param urlString the url for the target resource
+   * @param payload the content Java object to send to the server as json (json conversion is done for you)
+   * @param requestHeaders  Map of the headers to add to the request
+   * @return a response object with the header, body and response code
+   * @throws RestException if something goes wrong
+   */
   public Response post(String urlString, Object payload, Map<String, String> requestHeaders) throws RestException {
     return putPost(urlString, payload, requestHeaders, "POST");
   }
 
 
+  /**
+   * Executes a HTTP PUT request
+   * @param urlString the url for the target resource
+   * @param payload the content Java object to send to the server as json (json conversion is done for you)
+   * @return a response object with the header, body and response code
+   * @throws RestException if something goes wrong
+   */
   public Response put(String urlString, Object payload) throws RestException {
     return put(urlString, payload, null);
   }
 
+  /**
+   * Executes a HTTP POST request
+   * @param urlString the url for the target resource
+   * @param payload the content Java object to send to the server as json (json conversion is done for you)
+   * @param requestHeaders  Map of the headers to add to the request
+   * @return a response object with the header, body and response code
+   * @throws RestException if something goes wrong
+   */
   public Response put(String urlString, Object payload, Map<String, String> requestHeaders) throws RestException {
     return putPost(urlString, payload, requestHeaders, "PUT");
+  }
+
+  /**
+   * Executes a HTTP DELETE request
+   * @param urlString the url for the target resource
+   * @return a Response containing headers and status code and, possibly, the body content
+   * @throws RestException if something goes wrong
+   */
+  public Response delete(String urlString) throws RestException {
+    return delete(urlString, null);
+  }
+
+  /**
+   * Executes a HTTP DELETE request
+   * @param urlString the url for the target resource
+   * @param requestHeaders  Map of the headers to add to the request
+   * @return a Response containing headers and status code and, possibly, the body content
+   * @throws RestException if something goes wrong
+   */
+  public Response delete(String urlString, Map<String, String> requestHeaders) throws RestException {
+    StringBuilder writer = new StringBuilder();
+    try {
+      URL url = new URL(urlString);
+      HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+      conn.setDoOutput(false);
+      conn.setRequestMethod("DELETE");
+      if (requestHeaders != null && !requestHeaders.containsKey(CONTENT_TYPE)) {
+        conn.setRequestProperty(CONTENT_TYPE, MediaType.APPLICATION_JSON.getValue());
+      }
+      if (requestHeaders != null) {
+        requestHeaders.forEach(conn::setRequestProperty);
+      }
+      conn.connect();
+      int responseCode = conn.getResponseCode();
+      var headers = conn.getHeaderFields();
+
+      InputStream is = null;
+      try {
+        is = conn.getInputStream();
+      } catch (IOException e) {
+        // no content
+      }
+      if (is != null) {
+        BufferedReader br = new BufferedReader(new InputStreamReader(is));
+        String line;
+        while ((line = br.readLine()) != null) {
+          writer.append(line).append('\n');
+        }
+        is.close();
+      }
+      conn.disconnect();
+      return new Response(writer.toString(), responseCode, headers, mapper);
+    } catch (IOException e) {
+      throw new RestException("Failed to call DELETE on " + urlString, e);
+    }
+  }
+
+  /**
+   * Executes a HTTP HEAD request
+   * @param urlString the url for the target resource
+   * @return a Response containing headers and status code, no body content (there SHOULD not be any)
+   * @throws RestException if something goes wrong
+   */
+  public Response head(String urlString) throws RestException {
+    return head(urlString, null);
+  }
+
+  /**
+   * Executes a HTTP HEAD request
+   * @param urlString the url for the target resource
+   * @param requestHeaders  Map of the headers to add to the request
+   * @return a Response containing headers and status code, no body content (there SHOULD not be any)
+   * @throws RestException if something goes wrong
+   */
+  public Response head(String urlString, Map<String, String> requestHeaders) throws RestException {
+    return headersRequest(urlString, requestHeaders, "HEAD");
+  }
+
+  /**
+   * Executes a HTTP OPTIONS request
+   * @param urlString the url for the target resource
+   * @return a Response containing headers and status code, no body content (there SHOULD not be any)
+   * @throws RestException @throws RestException if something goes wrong
+   */
+  public Response options(String urlString) throws RestException {
+    return options(urlString, null);
+  }
+
+  /**
+   * Executes a HTTP OPTIONS request
+   * @param urlString the url for the target resource
+   * @param requestHeaders  Map of the headers to add to the request
+   * @return a Response containing headers and status code, no body content (there SHOULD not be any)
+   * @throws RestException @throws RestException if something goes wrong
+   */
+  public Response options(String urlString, Map<String, String> requestHeaders) throws RestException {
+    return headersRequest(urlString, requestHeaders, "OPTIONS");
+  }
+
+  private Response headersRequest(String urlString, Map<String, String> requestHeaders, String method) throws RestException {
+    String accept = MediaType.APPLICATION_JSON.getValue();
+
+    try {
+      URL url = new URL(urlString);
+      HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+      conn.setRequestMethod(method);
+      conn.setRequestProperty("Accept", accept);
+      if (requestHeaders != null) {
+        requestHeaders.forEach(conn::setRequestProperty);
+      }
+      conn.connect();
+      int responseCode = conn.getResponseCode();
+      var responseHeaders = conn.getHeaderFields();
+      conn.disconnect();
+      return new Response("", responseCode, responseHeaders, mapper);
+    } catch (IOException e) {
+      throw new RestException("Failed to call " + method + " on " + urlString, e);
+    }
   }
 
   private Response putPost(String urlString, Object payload, Map<String, String> requestHeaders, String method) throws RestException {
@@ -201,82 +349,11 @@ public class RestClient {
         while ((line = br.readLine()) != null) {
           writer.append(line).append('\n');
         }
+        is.close();
       }
       conn.disconnect();
       return new Response(writer.toString(), responseCode, headers, mapper);
 
-    } catch (IOException e) {
-      throw new RestException("Failed to call " + method + " on " + urlString, e);
-    }
-  }
-
-  public Response delete(String urlString) throws RestException {
-    return delete(urlString, null);
-  }
-
-  public Response delete(String urlString, Map<String, String> requestHeaders) throws RestException {
-    StringBuilder writer = new StringBuilder();
-    try {
-      URL url = new URL(urlString);
-      HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-      conn.setDoOutput(false);
-      conn.setRequestMethod("DELETE");
-      if (requestHeaders != null && !requestHeaders.containsKey(CONTENT_TYPE)) {
-        conn.setRequestProperty(CONTENT_TYPE, MediaType.APPLICATION_JSON.getValue());
-      }
-      if (requestHeaders != null) {
-        requestHeaders.forEach(conn::setRequestProperty);
-      }
-      conn.connect();
-      int responseCode = conn.getResponseCode();
-      var headers = conn.getHeaderFields();
-
-      if (conn.getContentLength() > 0) {
-        BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-        String line;
-        while ((line = br.readLine()) != null) {
-          writer.append(line).append('\n');
-        }
-      }
-      conn.disconnect();
-      return new Response(writer.toString(), responseCode, headers, mapper);
-    } catch (IOException e) {
-      throw new RestException("Failed to call DELETE on " + urlString, e);
-    }
-  }
-
-  public Response head(String urlString) throws RestException {
-    return head(urlString, null);
-  }
-
-  public Response head(String urlString, Map<String, String> headers) throws RestException {
-    return headersRequest(urlString, headers, "HEAD");
-  }
-
-  public Response options(String urlString) throws RestException {
-    return options(urlString, null);
-  }
-
-  public Response options(String urlString, Map<String, String> headers) throws RestException {
-    return headersRequest(urlString, headers, "OPTIONS");
-  }
-
-  public Response headersRequest(String urlString, Map<String, String> headers, String method) throws RestException {
-    String accept = MediaType.APPLICATION_JSON.getValue();
-
-    try {
-      URL url = new URL(urlString);
-      HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-      conn.setRequestMethod(method);
-      conn.setRequestProperty("Accept", accept);
-      if (headers != null) {
-        headers.forEach(conn::setRequestProperty);
-      }
-      conn.connect();
-      int responseCode = conn.getResponseCode();
-      var responseHeaders = conn.getHeaderFields();
-      conn.disconnect();
-      return new Response("", responseCode, responseHeaders, mapper);
     } catch (IOException e) {
       throw new RestException("Failed to call " + method + " on " + urlString, e);
     }
