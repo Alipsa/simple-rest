@@ -10,6 +10,11 @@ import java.net.URL;
 import java.util.Base64;
 import java.util.Map;
 
+/**
+ * The RestClient is the core of the simple-rest api.
+ * It implements all the verbs needed for REST communication.
+ * Methods are overloaded, so you can easily pick the one suited for your need.
+ */
 public class RestClient {
 
   private final ObjectMapper mapper;
@@ -22,6 +27,12 @@ public class RestClient {
     this.mapper = mapper;
   }
 
+  /**
+   * Although not RESTful, streaming raw images is commonly encountered in REST applications in the wild.
+   * This method checks if the url looks like it is serving an image
+   * @param urlString the url to verify
+   * @return true if the url exists and if the content type claims it to be an image otherwise false
+   */
   public boolean urlExistsAndIsImage(String urlString) {
     try {
       URL url = new URL(urlString);
@@ -37,10 +48,24 @@ public class RestClient {
     }
   }
 
+  /**
+   * Encode the binary content that the url is pointing to into a Base64 string.
+   *
+   * @param urlString the resource
+   * @return a base 64 encoded string
+   * @throws RestException if something goes wrong
+   */
   public static String getContentAsBase64(String urlString) throws RestException {
     return Base64.getEncoder().encodeToString(getContentAsBytes(urlString));
   }
 
+  /**
+   * Fetch the binary content that the url is pointing to into a byte[].
+   *
+   * @param urlString the resource
+   * @return a byte[] of the content
+   * @throws RestException if something goes wrong
+   */
   public static byte[] getContentAsBytes(String urlString) throws RestException {
     try {
       URL url = new URL(urlString);
@@ -68,10 +93,26 @@ public class RestClient {
     }
   }
 
+  /**
+   * Executes a HTTP GET request
+   * @param urlString the url for the target resource
+   * @param acceptType optional parameter if you want to set something other than application/json (you should not have to)
+   * @return a response object with the header, body and response code
+   * @throws RestException if something goes wrong
+   */
   public Response get(String urlString, String... acceptType) throws RestException {
     return get(urlString, null, acceptType);
   }
 
+
+  /**
+   * Executes a HTTP GET request
+   * @param urlString the url for the target resource
+   * @param headers a Map of the headers to add to the request
+   * @param acceptType optional parameter if you want to set something other than application/json (you should not have to)
+   * @return a response object with the header, body and response code
+   * @throws RestException if something goes wrong
+   */
   public Response get(String urlString, Map<String, String> headers, String... acceptType) throws RestException {
     String accept = acceptType.length > 0 ? acceptType[0] : MediaType.APPLICATION_JSON.getValue();
     StringBuilder writer = new StringBuilder();
@@ -92,7 +133,7 @@ public class RestClient {
         writer.append(line).append('\n');
       }
       conn.disconnect();
-      return new Response(writer.toString(), responseCode, responseHeaders);
+      return new Response(writer.toString(), responseCode, responseHeaders, mapper);
     } catch (IOException e) {
       throw new RestException("Failed to call GET on " + urlString, e);
     }
@@ -162,7 +203,7 @@ public class RestClient {
         }
       }
       conn.disconnect();
-      return new Response(writer.toString(), responseCode, headers);
+      return new Response(writer.toString(), responseCode, headers, mapper);
 
     } catch (IOException e) {
       throw new RestException("Failed to call " + method + " on " + urlString, e);
@@ -198,7 +239,7 @@ public class RestClient {
         }
       }
       conn.disconnect();
-      return new Response(writer.toString(), responseCode, headers);
+      return new Response(writer.toString(), responseCode, headers, mapper);
     } catch (IOException e) {
       throw new RestException("Failed to call DELETE on " + urlString, e);
     }
@@ -235,7 +276,7 @@ public class RestClient {
       int responseCode = conn.getResponseCode();
       var responseHeaders = conn.getHeaderFields();
       conn.disconnect();
-      return new Response("", responseCode, responseHeaders);
+      return new Response("", responseCode, responseHeaders, mapper);
     } catch (IOException e) {
       throw new RestException("Failed to call " + method + " on " + urlString, e);
     }

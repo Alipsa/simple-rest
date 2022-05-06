@@ -16,6 +16,8 @@ Add the following dependency to your maven pom.xml (or equivalent for your build
 </dependency>
 ```
 
+The Javadoc is available [![here](https://javadoc.io/badge2/se.alipsa/simple-rest/javadoc.svg)](https://javadoc.io/doc/se.alipsa/simple-rest)
+
 # Examples
 
 ## Google API's example
@@ -115,3 +117,10 @@ var response = restClient.post(
 );
 Company c = response.getObject(Company.class);
 ```
+
+## Third party libraries used
+
+### Jackson core and databind
+Used to convert Json to Java Objects. License: Apache 2.0
+
+That's it! Very lean and simple!
