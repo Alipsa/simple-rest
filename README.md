@@ -5,7 +5,7 @@ When creating modular (jigsaw) applications, none of the existing rest libraries
 Simple-rest is a modular (as in jigsaw), straight forward library for rest clients.
 
 The API is build around the se.alipsa.simplerest.RestClient and the se.alipsa.simplerest.Response classes where the
-RestClient handles the request and the Response class (for the most part) handles the response. 
+RestClient handles the request and the Response class (for the most part) handles the response.
 
 Add the following dependency to your maven pom.xml (or equivalent for your build system)
 ```xml
@@ -121,6 +121,12 @@ List<Company> getCompanies(String jwtToken) {
   return Collections.emptyList();
 }
 ```
+
+## Using simple-rest for REST/XML
+The Rest service response is assumed to be JSON. If you need to use REST/XML you need to
+1. Add a dependency to com.fasterxml.jackson.dataformat:jackson-dataformat-xml
+2. pass an XmlMapper (a subclass of ObjectMapper) when constructing the RestClient
+3. Set the Content-Type header appropriately (probably application/xml) for each request. 
 
 ## Third party libraries used
 
