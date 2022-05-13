@@ -2,6 +2,8 @@
 
 ### ver 1.0.2, in progress
 - Describe how to handle REST/XML, add application/xml to the MediaType
+- Fix url in pom.xml
+- Update maven plugin versions
 
 ### ver 1.0.1, 2022-05-06
 - Default to the Object mapper in the RestClient instead of creating a new one.

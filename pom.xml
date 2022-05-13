@@ -11,7 +11,7 @@
 
     <name>Simple Rest</name>
     <description>Simple, modular Rest library for java 11+</description>
-    <url>https://github.com/Alipsa/spreadsheets</url>
+    <url>https://github.com/Alipsa/simple-rest</url>
 
     <licenses>
         <license>
@@ -147,7 +147,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.2.0</version>
+                <version>3.4.0</version>
                 <executions>
                     <execution>
                         <id>attach-javadocs</id>
@@ -230,7 +230,7 @@
                         <!-- See https://central.sonatype.org/pages/apache-maven.html for details -->
                         <groupId>org.sonatype.plugins</groupId>
                         <artifactId>nexus-staging-maven-plugin</artifactId>
-                        <version>1.6.8</version>
+                        <version>1.6.13</version>
                         <extensions>true</extensions>
                         <configuration>
                             <serverId>ossrh</serverId>
