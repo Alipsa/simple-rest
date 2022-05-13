@@ -175,7 +175,7 @@ public class RestClient {
   }
 
   /**
-   * Executes a HTTP POST request
+   * Executes a HTTP PUT request
    * @param urlString the url for the target resource
    * @param payload the content Java object to send to the server as json (json conversion is done for you)
    * @param requestHeaders  Map of the headers to add to the request
