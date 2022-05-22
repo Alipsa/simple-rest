@@ -97,7 +97,7 @@ public class BasicAuthRestTest {
     var response = restClient.put(
         serverUrl + "basic",
         company,
-        Map.of(AUTHORIZATION, basicAuth(userName, password))
+        basicAuthHeader(userName, password)
     );
     Company c = response.getObject(Company.class);
     assertEquals("Creative Design", c.getName(), "Company name");
@@ -108,7 +108,7 @@ public class BasicAuthRestTest {
   public void basicDeleteTest() throws RestException {
     var response = restClient.delete(
         serverUrl + "basic/company/123",
-        Map.of(AUTHORIZATION, basicAuth(userName, password))
+        basicAuthHeader(userName, password)
     );
     assertEquals(204, response.getResponseCode(), "delete /basic/company/123, response Code");
     response = restClient.delete(
@@ -122,7 +122,7 @@ public class BasicAuthRestTest {
   public void basicHeadTest() throws RestException {
     Response response = restClient.head(
         serverUrl + "basic",
-        Map.of(AUTHORIZATION, basicAuth(userName, password))
+        basicAuthHeader(userName, password)
     );
     assertEquals("27", response.getHeader(CONTENT_LENGTH), "Content-Length");
     assertEquals("application/json", response.getHeader(CONTENT_TYPE));
@@ -132,7 +132,7 @@ public class BasicAuthRestTest {
   public void basicOptionsTest() throws RestException {
     Response response = restClient.options(
         serverUrl + "basic",
-        Map.of(AUTHORIZATION, basicAuth(userName, password))
+        basicAuthHeader(userName, password)
     );
     //System.out.println(response.getHeaders());
     assertEquals("GET, HEAD, POST, PUT, DELETE, TRACE, OPTIONS", response.getHeader(ALLOW));
