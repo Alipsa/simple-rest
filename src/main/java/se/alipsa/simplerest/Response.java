@@ -64,7 +64,8 @@ public class Response {
    */
   public <T> List<T> getObjectList(Class<T> returnClass, ObjectMapper... customMapper) throws JsonProcessingException {
     ObjectMapper mapper = customMapper.length > 0 ? customMapper[0] : objectMapper;
-    return mapper.readValue(getPayload(), new TypeReference<>() {});
+    //return mapper.readValue(getPayload(), new TypeReference<List<T>>() {});
+    return mapper.readValue(getPayload(), mapper.getTypeFactory().constructCollectionType(List.class, returnClass));
   }
 
   /**

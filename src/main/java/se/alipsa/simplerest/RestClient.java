@@ -3,6 +3,7 @@ package se.alipsa.simplerest;
 import static se.alipsa.simplerest.CommonHeaders.CONTENT_TYPE;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -20,7 +21,7 @@ public class RestClient {
   private final ObjectMapper mapper;
 
   public RestClient() {
-    mapper = new ObjectMapper();
+    mapper = new ObjectMapper().registerModule(new JavaTimeModule());
   }
 
   public RestClient(ObjectMapper mapper) {
@@ -104,7 +105,6 @@ public class RestClient {
     return get(urlString, null, acceptType);
   }
 
-
   /**
    * Executes a HTTP GET request
    * @param urlString the url for the target resource
@@ -114,6 +114,19 @@ public class RestClient {
    * @throws RestException if something goes wrong
    */
   public Response get(String urlString, Map<String, String> headers, String... acceptType) throws RestException {
+    return get(urlString, null, headers, acceptType);
+  }
+
+  /**
+   * Executes a HTTP GET request
+   * @param urlString the url for the target resource
+   * @param payload the content Java object to send to the server as json (json conversion is done for you)
+   * @param headers a Map of the headers to add to the request
+   * @param acceptType optional parameter if you want to set something other than application/json (you should not have to)
+   * @return a response object with the header, body and response code
+   * @throws RestException if something goes wrong
+   */
+  public Response get(String urlString, Object payload, Map<String, String> headers, String... acceptType) throws RestException {
     String accept = acceptType.length > 0 ? acceptType[0] : MediaType.APPLICATION_JSON.getValue();
     StringBuilder writer = new StringBuilder();
     try {
@@ -124,7 +137,22 @@ public class RestClient {
       if (headers != null) {
         headers.forEach(conn::setRequestProperty);
       }
-      conn.connect();
+      if (payload != null) {
+        conn.setDoOutput(true);
+        String input;
+        if (payload instanceof CharSequence) {
+          input = String.valueOf(payload);
+        } else {
+          input = mapper.writeValueAsString(payload);
+        }
+        conn.connect();
+        OutputStream os = conn.getOutputStream();
+        os.write(input.getBytes());
+        os.flush();
+        os.close();
+      } else {
+        conn.connect();
+      }
       int responseCode = conn.getResponseCode();
       var responseHeaders = conn.getHeaderFields();
       BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
