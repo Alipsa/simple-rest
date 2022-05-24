@@ -1,5 +1,6 @@
 package se.alipsa.simplerest;
 
+import static se.alipsa.simplerest.CommonHeaders.ACCEPT;
 import static se.alipsa.simplerest.CommonHeaders.CONTENT_TYPE;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -120,7 +121,10 @@ public class RestClient {
   /**
    * Executes a HTTP GET request
    * @param urlString the url for the target resource
-   * @param payload the content Java object to send to the server as json (json conversion is done for you)
+   * @param payload the content Java object to send to the server as json (json conversion is done for you).
+   *                Note: it is generally a BAD idea to send a payload with a get request. The Http 1.1 spec says:
+   *                "A payload within a GET request message has no defined semantics;
+   *                sending a payload body on a GET request might cause some existing implementations to reject the request."
    * @param headers a Map of the headers to add to the request
    * @param acceptType optional parameter if you want to set something other than application/json (you should not have to)
    * @return a response object with the header, body and response code
@@ -133,11 +137,14 @@ public class RestClient {
       URL url = new URL(urlString);
       HttpURLConnection conn = (HttpURLConnection) url.openConnection();
       conn.setRequestMethod("GET");
-      conn.setRequestProperty("Accept", accept);
+      conn.setRequestProperty(ACCEPT, accept);
       if (headers != null) {
         headers.forEach(conn::setRequestProperty);
       }
       if (payload != null) {
+        if (headers == null || !headers.containsKey(CONTENT_TYPE)) {
+          conn.setRequestProperty(CONTENT_TYPE, MediaType.APPLICATION_JSON.getValue());
+        }
         conn.setDoOutput(true);
         String input;
         if (payload instanceof CharSequence) {
@@ -238,7 +245,7 @@ public class RestClient {
       HttpURLConnection conn = (HttpURLConnection) url.openConnection();
       conn.setDoOutput(false);
       conn.setRequestMethod("DELETE");
-      if (requestHeaders != null && !requestHeaders.containsKey(CONTENT_TYPE)) {
+      if (requestHeaders == null || !requestHeaders.containsKey(CONTENT_TYPE)) {
         conn.setRequestProperty(CONTENT_TYPE, MediaType.APPLICATION_JSON.getValue());
       }
       if (requestHeaders != null) {
@@ -338,7 +345,7 @@ public class RestClient {
       URL url = new URL(urlString);
       HttpURLConnection conn = (HttpURLConnection) url.openConnection();
       conn.setRequestMethod(method);
-      if (requestHeaders != null && !requestHeaders.containsKey(CONTENT_TYPE)) {
+      if (requestHeaders == null || !requestHeaders.containsKey(CONTENT_TYPE)) {
         conn.setRequestProperty(CONTENT_TYPE, MediaType.APPLICATION_JSON.getValue());
       }
       if (requestHeaders != null) {

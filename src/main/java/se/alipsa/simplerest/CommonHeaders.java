@@ -9,6 +9,7 @@ import java.util.Map;
 public class CommonHeaders {
 
   public static final String ALLOW = "Allow";
+  public static final String ACCEPT = "Accept";
   public static final String AUTHORIZATION = "Authorization";
   public static final String CONTENT_LENGTH = "Content-Length";
   public static final String CONTENT_TYPE = "Content-Type";
