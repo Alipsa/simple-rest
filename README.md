@@ -35,11 +35,13 @@ use most of the API capabilities and is a good, simple resource for how the api 
   private SearchResult search(@NotBlank String question) throws RestException, JsonProcessingException {
     String query = java.net.URLEncoder.encode(question, StandardCharsets.UTF_8);
     String url = "https://www.googleapis.com/customsearch/v1" +
-        "?key=theLongAPIkey" +
-        "&cx=theSearchEngineId" +
-        "&searchType=image" +
-        "&q=" + query +
-        "&num=" + 9;
+            UrlParameters.parameters(
+                    "key", "theLongAPIkey",
+                    "cx", "theSearchEngineId",
+                    "searchType", "image",
+                    "q", query,
+                    "num", "9"
+            );
     var restClient = new se.alipsa.simplerest.RestClient();  
     return restClient.get(url).getObject(SearchResult.class);
   }
@@ -107,8 +109,8 @@ List<Company> getCompanies(String jwtToken) {
   try {
     // Add the token to the header of the GET request
     Response response = restClient.get(
-            "https://localhost:8080/api/company", 
-            Map.of("Authorization", bearer(jwtToken))
+            "https://localhost:8080/api/company",
+            bearerHeader(jwtToken)
     );
     // getObjectList return a list of the type passed in as a parameter 
     // when the payload is a JSON array or Objects
