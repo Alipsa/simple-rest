@@ -60,9 +60,9 @@ var company = new Company();
 company.setName("Creative Design");
 var restClient = new RestClient();
 var response = restClient.post(
-    "http://localhost:8080/companies/company",
-    company,
-    Map.of(AUTHORIZATION, basicAuth("myUserName", "myPassword"))
+        "http://localhost:8080/companies/company", 
+        company, 
+        basicAuthHeader("myUserName", "myPassword")
 );
 Company c = response.getObject(Company.class);
 // Do something with c...
