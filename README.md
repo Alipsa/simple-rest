@@ -132,7 +132,7 @@ The Rest service response is assumed to be JSON. If you need to use REST/XML you
 
 ## Third party libraries used
 
-### Jackson core and databind
+### Jackson core, databind, and the jsr310 module
 Used to convert Json to Java Objects. License: Apache 2.0
 
 That's it! Very lean and simple!
