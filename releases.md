@@ -1,10 +1,12 @@
 # Release history
 
-### ver 1.0.2, in progress
+### ver 1.0.3, in progress
+
+### ver 1.0.2, 2022-05-25
 - Describe how to handle REST/XML, add application/xml to the MediaType
 - Fix url in pom.xml
 - Update maven plugin versions
-- add Accept header tp common headers
+- add Accept header to common headers
 - set content type even if requestHeaders param is null
 - add UrlParameters utility method
 
