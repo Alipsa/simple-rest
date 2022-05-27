@@ -85,6 +85,10 @@ public class Response {
     this.payload = payload;
   }
 
+  /**
+   *
+   * @return the http status code (e.g. 200 for OK, 404 for not found etc.)
+   */
   public int getResponseCode() {
     return responseCode;
   }
