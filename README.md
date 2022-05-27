@@ -1,4 +1,7 @@
 # simple-rest
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/se.alipsa/simple-rest/badge.svg)](https://maven-badges.herokuapp.com/maven-central/se.alipsa/simple-rest)
+[![javadoc](https://javadoc.io/badge2/se.alipsa/simple-rest/javadoc.svg)](https://javadoc.io/doc/se.alipsa/simple-rest)
+
 Simple, modular Rest library for java 11+
 
 When creating modular (jigsaw) applications, none of the existing rest libraries for java works well.
@@ -16,8 +19,6 @@ Add the following dependency to your maven pom.xml (or equivalent for your build
     <version>1.0.2</version>
 </dependency>
 ```
-
-The Javadoc is available [here ![javadoc](https://javadoc.io/badge2/se.alipsa/simple-rest/javadoc.svg)](https://javadoc.io/doc/se.alipsa/simple-rest)
 
 # Examples
 
