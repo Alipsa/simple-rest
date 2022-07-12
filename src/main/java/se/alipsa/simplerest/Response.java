@@ -93,14 +93,23 @@ public class Response {
     return responseCode;
   }
 
+  /**
+   * @param responseCode set the response code for this response
+   */
   public void setResponseCode(int responseCode) {
     this.responseCode = responseCode;
   }
 
+  /**
+   * @return The headers in this response
+   */
   public Map<String, List<String>> getHeaders() {
     return headers;
   }
 
+  /**
+   * @param headers set the headers for this response
+   */
   public void setHeaders(Map<String, List<String>> headers) {
     this.headers = headers;
   }

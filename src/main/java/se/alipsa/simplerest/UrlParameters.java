@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets;
  * <code>
  * UrlParameters.parameters("foo", "123", "bar", "898")
  * </code>
- * will result in the parameter string "?foo=123&bar=898"
+ * will result in the parameter string "?foo=123&amp;bar=898"
  *
  */
 public class UrlParameters {

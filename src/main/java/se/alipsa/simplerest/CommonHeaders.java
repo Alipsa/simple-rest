@@ -8,10 +8,15 @@ import java.util.Map;
  */
 public class CommonHeaders {
 
+  /** The header containing what request types that are allowed (GET, PUT, POST etc.) */
   public static final String ALLOW = "Allow";
+  /** Used to indicate the desired response type (media type, encoding, doctype) to the server */
   public static final String ACCEPT = "Accept";
+  /** THe Authorization header */
   public static final String AUTHORIZATION = "Authorization";
+  /** Used to indicate the length of the payload */
   public static final String CONTENT_LENGTH = "Content-Length";
+  /** The header that specifies the content type (e.g. application/json) */
   public static final String CONTENT_TYPE = "Content-Type";
 
   /**

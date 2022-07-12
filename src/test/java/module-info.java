@@ -1,3 +1,6 @@
+/**
+ * The simplerest module
+ */
 module test.alipsa.simplerest {
   requires se.alipsa.simplerest;
   requires org.eclipse.jetty.server;

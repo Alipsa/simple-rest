@@ -21,10 +21,15 @@ public class RestClient {
 
   private final ObjectMapper mapper;
 
+  /** Default ctor, creates an object mapper with the JavaTimeModule enabled */
   public RestClient() {
     mapper = new ObjectMapper().registerModule(new JavaTimeModule());
   }
 
+  /** Creates a rest client with the object mapper specified
+   *
+   * @param mapper the ObjectMapper to use
+   */
   public RestClient(ObjectMapper mapper) {
     this.mapper = mapper;
   }
