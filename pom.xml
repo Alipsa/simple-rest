@@ -6,7 +6,7 @@
 
     <groupId>se.alipsa</groupId>
     <artifactId>simple-rest</artifactId>
-    <version>1.0.3-SNAPSHOT</version>
+    <version>1.0.3</version>
     <packaging>jar</packaging>
 
     <name>Simple Rest</name>
@@ -78,7 +78,7 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>5.8.2</version>
+            <version>5.9.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

@@ -69,6 +69,17 @@ var response = restClient.post(
 Company c = response.getObject(Company.class);
 // Do something with c...
 ```
+A GET request is similar e.g:
+```groovy
+import static se.alipsa.simplerest.CommonHeaders.*;
+import se.alipsa.simplerest.*;
+var restClient = new RestClient();
+var response = restClient.get(
+    "http://localhost:8080/companies/company/123/name",
+    basicAuthHeader("myUserName", "myPassword")
+);
+String companyName = response.getPayload();
+```
 
 ## JSON web token example
 

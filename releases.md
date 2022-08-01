@@ -1,6 +1,8 @@
 # Release history
 
-### ver 1.0.3, in progress
+### ver 1.0.3, 2022-08-01
+- upgrade test dependencies (junit, jetty). 
+- add some docs
 
 ### ver 1.0.2, 2022-05-25
 - Describe how to handle REST/XML, add application/xml to the MediaType
