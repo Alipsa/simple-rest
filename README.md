@@ -126,7 +126,7 @@ List<Company> getCompanies(String jwtToken) {
             bearerHeader(jwtToken)
     );
     // getObjectList return a list of the type passed in as a parameter 
-    // when the payload is a JSON array or Objects
+    // when the payload is a JSON array of Objects
     return response.getObjectList(Company.class);
   } catch (RestException e) {
     System.err.println("Failed to talk to server: " + e);
