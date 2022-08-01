@@ -1,5 +1,7 @@
 # Release history
 
+### ver 1.0.4, In development...
+
 ### ver 1.0.3, 2022-08-01
 - upgrade test dependencies (junit, jetty). 
 - add some docs

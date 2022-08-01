@@ -16,7 +16,7 @@ Add the following dependency to your maven pom.xml (or equivalent for your build
 <dependency>
     <groupId>se.alipsa</groupId>
     <artifactId>simple-rest</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
 </dependency>
 ```
 
