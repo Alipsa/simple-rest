@@ -14,6 +14,7 @@ import se.alipsa.simplerest.Response;
 import se.alipsa.simplerest.RestClient;
 import se.alipsa.simplerest.RestException;
 import test.alipsa.simplerest.model.Company;
+import test.alipsa.simplerest.servlets.ComplexServlet;
 import test.alipsa.simplerest.servlets.SimpleServlet;
 
 import java.util.List;
@@ -66,6 +67,11 @@ public class SimpleRestTest {
     Company company = response.getObject(Company.class);
     assertEquals("ABC", company.getName(), "Company name");
     assertEquals(123, company.getNumber(), "company number");
+  }
+
+  @Test
+  public void getComplexReturn() {
+
   }
 
   @Test

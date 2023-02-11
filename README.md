@@ -16,7 +16,7 @@ Add the following dependency to your maven pom.xml (or equivalent for your build
 <dependency>
     <groupId>se.alipsa</groupId>
     <artifactId>simple-rest</artifactId>
-    <version>1.0.3</version>
+    <version>1.0.4</version>
 </dependency>
 ```
 
@@ -135,6 +135,22 @@ List<Company> getCompanies(String jwtToken) {
   }
   return Collections.emptyList();
 }
+```
+
+## Complex return types
+In some cases you have some even more complex type that you want to get from the response.
+In these cases you create a TypeReference and pass that to the getForType method.
+Here is an example:
+
+```groovy
+import se.alipsa.simplerest.*;
+import com.fasterxml.jackson.core.type.TypeReference;
+import java.util.Map;
+import java.util.List;
+
+var restClient = new RestClient();
+Response response = restClient.get("https://localhost:8080/api/info");
+Map<String, List<String>> info = response.getForType(new TypeReference<>(){});
 ```
 
 ## Using simple-rest for REST/XML

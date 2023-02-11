@@ -1,6 +1,8 @@
 # Release history
 
-### ver 1.0.4, In development...
+### ver 1.0.4, 2023-02-11
+- Add getForType which takes a TypeReference as parameter to be able to return "anything"
+- Upgrade dependencies for jackson, and test dependencies (jetty, junit, slf4j) 
 
 ### ver 1.0.3, 2022-08-01
 - upgrade test dependencies (junit, jetty). 

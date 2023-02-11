@@ -69,6 +69,11 @@ public class Response {
     return mapper.readValue(getPayload(), mapper.getTypeFactory().constructCollectionType(List.class, returnClass));
   }
 
+  public <T> T getForType(TypeReference<T> type, ObjectMapper... customMapper) throws JsonProcessingException {
+    ObjectMapper mapper = customMapper.length > 0 ? customMapper[0] : objectMapper;
+    return mapper.reader().forType(type).readValue(getPayload());
+  }
+
   /**
    *
    * @return the "raw" content of the response
