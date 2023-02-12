@@ -2,6 +2,7 @@ package se.alipsa.simplerest;
 
 import static se.alipsa.simplerest.CommonHeaders.ACCEPT;
 import static se.alipsa.simplerest.CommonHeaders.CONTENT_TYPE;
+import static se.alipsa.simplerest.RequestMethod.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -44,7 +45,7 @@ public class RestClient {
     try {
       URL url = new URL(urlString);
       HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-      conn.setRequestMethod("GET");
+      conn.setRequestMethod(GET);
       conn.connect();
       String contentType = conn.getContentType();
       boolean result = conn.getResponseCode() == 200 && contentType != null && contentType.startsWith("image");
@@ -77,7 +78,7 @@ public class RestClient {
     try {
       URL url = new URL(urlString);
       HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-      conn.setRequestMethod("GET");
+      conn.setRequestMethod(GET);
       conn.connect();
       if (conn.getResponseCode() != 200) {
         throw new RestException("GET call to " + urlString + " failed: HTTP error code = " + conn.getResponseCode());
@@ -141,7 +142,7 @@ public class RestClient {
     try {
       URL url = new URL(urlString);
       HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-      conn.setRequestMethod("GET");
+      conn.setRequestMethod(GET);
       conn.setRequestProperty(ACCEPT, accept);
       if (headers != null) {
         headers.forEach(conn::setRequestProperty);
@@ -199,7 +200,7 @@ public class RestClient {
    * @throws RestException if something goes wrong
    */
   public Response post(String urlString, Object payload, Map<String, String> requestHeaders) throws RestException {
-    return putPost(urlString, payload, requestHeaders, "POST");
+    return putPost(urlString, payload, requestHeaders, POST);
   }
 
 
@@ -223,7 +224,7 @@ public class RestClient {
    * @throws RestException if something goes wrong
    */
   public Response put(String urlString, Object payload, Map<String, String> requestHeaders) throws RestException {
-    return putPost(urlString, payload, requestHeaders, "PUT");
+    return putPost(urlString, payload, requestHeaders, PUT);
   }
 
   /**
@@ -249,7 +250,7 @@ public class RestClient {
       URL url = new URL(urlString);
       HttpURLConnection conn = (HttpURLConnection) url.openConnection();
       conn.setDoOutput(false);
-      conn.setRequestMethod("DELETE");
+      conn.setRequestMethod(DELETE);
       if (requestHeaders == null || !requestHeaders.containsKey(CONTENT_TYPE)) {
         conn.setRequestProperty(CONTENT_TYPE, MediaType.APPLICATION_JSON.getValue());
       }
@@ -299,7 +300,7 @@ public class RestClient {
    * @throws RestException if something goes wrong
    */
   public Response head(String urlString, Map<String, String> requestHeaders) throws RestException {
-    return headersRequest(urlString, requestHeaders, "HEAD");
+    return headersRequest(urlString, requestHeaders, HEAD);
   }
 
   /**
@@ -320,7 +321,7 @@ public class RestClient {
    * @throws RestException @throws RestException if something goes wrong
    */
   public Response options(String urlString, Map<String, String> requestHeaders) throws RestException {
-    return headersRequest(urlString, requestHeaders, "OPTIONS");
+    return headersRequest(urlString, requestHeaders, OPTIONS);
   }
 
   private Response headersRequest(String urlString, Map<String, String> requestHeaders, String method) throws RestException {
