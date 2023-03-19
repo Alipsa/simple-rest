@@ -2,6 +2,7 @@
 
 ### ver 1.0.5, in progress
 - Add RequestMethod with static constants for all Http Request methods
+- Update test dependencies
 
 ### ver 1.0.4, 2023-02-11
 - Add getForType which takes a TypeReference as parameter to be able to return "anything"
