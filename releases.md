@@ -1,6 +1,8 @@
 # Release history
 
-### ver 1.0.5, in progress
+### ver 1.0.6, In progress
+
+### ver 1.0.5, 2023-03-19
 - Add RequestMethod with static constants for all Http Request methods
 - Update test dependencies
 
