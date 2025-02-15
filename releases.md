@@ -1,6 +1,8 @@
 # Release history
 
 ### ver 1.0.6, In progress
+- Upgrade jackson 2.14.2 -> 2.18.2
+- Upgrade jetty 11.0.14 -> 11.0.24
 
 ### ver 1.0.5, 2023-03-19
 - Add RequestMethod with static constants for all Http Request methods
