@@ -12,6 +12,10 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Base64;
 import java.util.Map;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 /**
  * The RestClient is the core of the simple-rest api.
@@ -22,17 +26,49 @@ public class RestClient {
 
   private final ObjectMapper mapper;
 
+  // Create a trust manager that does not validate certificate chains
+  TrustManager[] trustAllCerts = new TrustManager[]{
+      new X509TrustManager() {
+        public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+          return null;
+        }
+        public void checkClientTrusted(
+            java.security.cert.X509Certificate[] certs, String authType) {
+        }
+        public void checkServerTrusted(
+            java.security.cert.X509Certificate[] certs, String authType) {
+        }
+      }
+  };
+
+  private void installAllTrustingTrustManager() {
+    // Install the all-trusting trust manager
+    // TODO: This should be done on the connection, not globally
+    try {
+      SSLContext sc = SSLContext.getInstance("SSL");
+      sc.init(null, trustAllCerts, new java.security.SecureRandom());
+      HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+    } catch (Exception e) {
+    }
+  }
+
   /** Default ctor, creates an object mapper with the JavaTimeModule enabled */
-  public RestClient() {
+  public RestClient(boolean... trustAllCerts) {
     mapper = new ObjectMapper().registerModule(new JavaTimeModule());
+    if (trustAllCerts.length > 0 && trustAllCerts[0]) {
+      installAllTrustingTrustManager();
+    }
   }
 
   /** Creates a rest client with the object mapper specified
    *
    * @param mapper the ObjectMapper to use
    */
-  public RestClient(ObjectMapper mapper) {
+  public RestClient(ObjectMapper mapper, boolean... trustAllCerts) {
     this.mapper = mapper;
+    if (trustAllCerts.length > 0 && trustAllCerts[0]) {
+      installAllTrustingTrustManager();
+    }
   }
 
   /**
