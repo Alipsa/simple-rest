@@ -10,12 +10,16 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.Map;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import nl.altindag.ssl.SSLFactory;
 
 /**
  * The RestClient is the core of the simple-rest api.
@@ -25,69 +29,84 @@ import javax.net.ssl.X509TrustManager;
 public class RestClient {
 
   private final ObjectMapper mapper;
+  SSLSocketFactory sslSocketFactory;
 
-  // Create a trust manager that does not validate certificate chains
-  TrustManager[] trustAllCerts = new TrustManager[]{
-      new X509TrustManager() {
-        public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-          return null;
+  private SSLSocketFactory getTrustAllSSLSocketFactory()
+      throws NoSuchAlgorithmException, KeyManagementException {
+    // Create a trust manager that does not validate certificate chains
+    TrustManager[] trustAllCertManagers = new TrustManager[]{
+        new X509TrustManager() {
+          public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+            return null;
+          }
+          public void checkClientTrusted(
+              java.security.cert.X509Certificate[] certs, String authType) {
+          }
+          public void checkServerTrusted(
+              java.security.cert.X509Certificate[] certs, String authType) {
+          }
         }
-        public void checkClientTrusted(
-            java.security.cert.X509Certificate[] certs, String authType) {
-        }
-        public void checkServerTrusted(
-            java.security.cert.X509Certificate[] certs, String authType) {
-        }
-      }
-  };
-
-  private void installAllTrustingTrustManager() {
-    // Install the all-trusting trust manager
-    // TODO: This should be done on the connection, not globally
-    try {
-      SSLContext sc = SSLContext.getInstance("SSL");
-      sc.init(null, trustAllCerts, new java.security.SecureRandom());
-      HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-    } catch (Exception e) {
-    }
+    };
+    SSLContext sc = SSLContext.getInstance("SSL");
+    sc.init(null, trustAllCertManagers, new java.security.SecureRandom());
+    return sc.getSocketFactory();
   }
 
-  /** Default ctor, creates an object mapper with the JavaTimeModule enabled */
-  public RestClient(boolean... trustAllCerts) {
-    mapper = new ObjectMapper().registerModule(new JavaTimeModule());
-    if (trustAllCerts.length > 0 && trustAllCerts[0]) {
-      installAllTrustingTrustManager();
-    }
+  /**
+   * Default ctor, creates an object mapper with the JavaTimeModule enabled
+   *
+   * @param trustAllCertManagers if true, any ssl connection can be made, if false
+   *                             only trues keystore and os installed certs.
+   *                             Default is false.
+   * @throws RestException if the SSL Socket factory cannot be created
+   */
+  public RestClient(boolean... trustAllCertManagers) throws RestException {
+    this(new ObjectMapper().registerModule(new JavaTimeModule()), trustAllCertManagers);
+
   }
 
   /** Creates a rest client with the object mapper specified
    *
    * @param mapper the ObjectMapper to use
+   * @param trustAllCertManagers if true, any ssl connection can be made, if false
+   *    *                        only trues keystore and os installed certs.
+   *                             Default is false.
+   * @throws RestException if the SSL Socket factory cannot be created
    */
-  public RestClient(ObjectMapper mapper, boolean... trustAllCerts) {
+  public RestClient(ObjectMapper mapper, boolean... trustAllCertManagers)
+      throws RestException {
     this.mapper = mapper;
-    if (trustAllCerts.length > 0 && trustAllCerts[0]) {
-      installAllTrustingTrustManager();
+    try {
+      if (trustAllCertManagers.length > 0 && trustAllCertManagers[0]) {
+        sslSocketFactory = getTrustAllSSLSocketFactory();
+      } else {
+        sslSocketFactory = SSLFactory.builder().withDefaultTrustMaterial() // JDK trusted CA's
+            .withSystemTrustMaterial()  // OS trusted CA's
+            .build().getSslSocketFactory();
+      }
+    } catch (NoSuchAlgorithmException | KeyManagementException e) {
+      throw new RestException("Failed to set up SSL socket factory", e);
     }
   }
 
   /**
    * Although not RESTful, streaming raw images is commonly encountered in REST applications in the wild.
    * This method checks if the url looks like it is serving an image
+   *
    * @param urlString the url to verify
    * @return true if the url exists and if the content type claims it to be an image otherwise false
    */
   public boolean urlExistsAndIsImage(String urlString) {
     try {
       URL url = new URL(urlString);
-      HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+      HttpURLConnection conn = openConnection(url);
       conn.setRequestMethod(GET);
       conn.connect();
       String contentType = conn.getContentType();
       boolean result = conn.getResponseCode() == 200 && contentType != null && contentType.startsWith("image");
       conn.disconnect();
       return result;
-    } catch (IOException e) {
+    } catch (IOException | RestException e) {
       return false;
     }
   }
@@ -99,7 +118,7 @@ public class RestClient {
    * @return a base 64 encoded string
    * @throws RestException if something goes wrong
    */
-  public static String getContentAsBase64(String urlString) throws RestException {
+  public String getContentAsBase64(String urlString) throws RestException {
     return Base64.getEncoder().encodeToString(getContentAsBytes(urlString));
   }
 
@@ -110,10 +129,10 @@ public class RestClient {
    * @return a byte[] of the content
    * @throws RestException if something goes wrong
    */
-  public static byte[] getContentAsBytes(String urlString) throws RestException {
+  public byte[] getContentAsBytes(String urlString) throws RestException {
     try {
       URL url = new URL(urlString);
-      HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+      HttpURLConnection conn = openConnection(url);
       conn.setRequestMethod(GET);
       conn.connect();
       if (conn.getResponseCode() != 200) {
@@ -138,7 +157,8 @@ public class RestClient {
   }
 
   /**
-   * Executes a HTTP GET request
+   * Executes a HTTP GET request.
+   *
    * @param urlString the url for the target resource
    * @param acceptType optional parameter if you want to set something other than application/json (you should not have to)
    * @return a response object with the header, body and response code
@@ -149,7 +169,8 @@ public class RestClient {
   }
 
   /**
-   * Executes a HTTP GET request
+   * Executes a HTTP GET request.
+   *
    * @param urlString the url for the target resource
    * @param headers a Map of the headers to add to the request
    * @param acceptType optional parameter if you want to set something other than application/json (you should not have to)
@@ -161,7 +182,8 @@ public class RestClient {
   }
 
   /**
-   * Executes a HTTP GET request
+   * Executes a HTTP GET request.
+   *
    * @param urlString the url for the target resource
    * @param payload the content Java object to send to the server as json (json conversion is done for you).
    *                Note: it is generally a BAD idea to send a payload with a get request. The Http 1.1 spec says:
@@ -177,7 +199,7 @@ public class RestClient {
     StringBuilder writer = new StringBuilder();
     try {
       URL url = new URL(urlString);
-      HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+      HttpURLConnection conn = openConnection(url);
       conn.setRequestMethod(GET);
       conn.setRequestProperty(ACCEPT, accept);
       if (headers != null) {
@@ -217,7 +239,8 @@ public class RestClient {
   }
 
   /**
-   * Executes a HTTP POST request
+   * Executes a HTTP POST request.
+   *
    * @param urlString the url for the target resource
    * @param payload the content Java object to send to the server as json (json conversion is done for you)
    * @return a response object with the header, body and response code
@@ -228,7 +251,8 @@ public class RestClient {
   }
 
   /**
-   * Executes a HTTP POST request
+   * Executes a HTTP POST request.
+   *
    * @param urlString the url for the target resource
    * @param payload the content Java object to send to the server as json (json conversion is done for you)
    * @param requestHeaders  Map of the headers to add to the request
@@ -241,7 +265,8 @@ public class RestClient {
 
 
   /**
-   * Executes a HTTP PUT request
+   * Executes a HTTP PUT request.
+   *
    * @param urlString the url for the target resource
    * @param payload the content Java object to send to the server as json (json conversion is done for you)
    * @return a response object with the header, body and response code
@@ -252,7 +277,8 @@ public class RestClient {
   }
 
   /**
-   * Executes a HTTP PUT request
+   * Executes a HTTP PUT request.
+   *
    * @param urlString the url for the target resource
    * @param payload the content Java object to send to the server as json (json conversion is done for you)
    * @param requestHeaders  Map of the headers to add to the request
@@ -264,7 +290,8 @@ public class RestClient {
   }
 
   /**
-   * Executes a HTTP DELETE request
+   * Executes a HTTP DELETE request.
+   *
    * @param urlString the url for the target resource
    * @return a Response containing headers and status code and, possibly, the body content
    * @throws RestException if something goes wrong
@@ -274,7 +301,8 @@ public class RestClient {
   }
 
   /**
-   * Executes a HTTP DELETE request
+   * Executes a HTTP DELETE request.
+   *
    * @param urlString the url for the target resource
    * @param requestHeaders  Map of the headers to add to the request
    * @return a Response containing headers and status code and, possibly, the body content
@@ -284,7 +312,7 @@ public class RestClient {
     StringBuilder writer = new StringBuilder();
     try {
       URL url = new URL(urlString);
-      HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+      HttpURLConnection conn = openConnection(url);
       conn.setDoOutput(false);
       conn.setRequestMethod(DELETE);
       if (requestHeaders == null || !requestHeaders.containsKey(CONTENT_TYPE)) {
@@ -319,7 +347,8 @@ public class RestClient {
   }
 
   /**
-   * Executes a HTTP HEAD request
+   * Executes a HTTP HEAD request.
+   *
    * @param urlString the url for the target resource
    * @return a Response containing headers and status code, no body content (there SHOULD not be any)
    * @throws RestException if something goes wrong
@@ -329,7 +358,8 @@ public class RestClient {
   }
 
   /**
-   * Executes a HTTP HEAD request
+   * Executes a HTTP HEAD request.
+   *
    * @param urlString the url for the target resource
    * @param requestHeaders  Map of the headers to add to the request
    * @return a Response containing headers and status code, no body content (there SHOULD not be any)
@@ -340,7 +370,8 @@ public class RestClient {
   }
 
   /**
-   * Executes a HTTP OPTIONS request
+   * Executes a HTTP OPTIONS request.
+   *
    * @param urlString the url for the target resource
    * @return a Response containing headers and status code, no body content (there SHOULD not be any)
    * @throws RestException @throws RestException if something goes wrong
@@ -350,7 +381,8 @@ public class RestClient {
   }
 
   /**
-   * Executes a HTTP OPTIONS request
+   * Executes a HTTP OPTIONS request.
+   *
    * @param urlString the url for the target resource
    * @param requestHeaders  Map of the headers to add to the request
    * @return a Response containing headers and status code, no body content (there SHOULD not be any)
@@ -365,7 +397,7 @@ public class RestClient {
 
     try {
       URL url = new URL(urlString);
-      HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+      HttpURLConnection conn = openConnection(url);
       conn.setRequestMethod(method);
       conn.setRequestProperty("Accept", accept);
       if (requestHeaders != null) {
@@ -385,7 +417,7 @@ public class RestClient {
     StringBuilder writer = new StringBuilder();
     try {
       URL url = new URL(urlString);
-      HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+      HttpURLConnection conn = openConnection(url);
       conn.setRequestMethod(method);
       if (requestHeaders == null || !requestHeaders.containsKey(CONTENT_TYPE)) {
         conn.setRequestProperty(CONTENT_TYPE, MediaType.APPLICATION_JSON.getValue());
@@ -433,6 +465,19 @@ public class RestClient {
 
     } catch (IOException e) {
       throw new RestException("Failed to call " + method + " on " + urlString, e);
+    }
+  }
+
+  HttpURLConnection openConnection(URL url)
+      throws RestException {
+    try {
+      HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+      if (conn instanceof HttpsURLConnection) {
+        ((HttpsURLConnection) conn).setSSLSocketFactory(sslSocketFactory);
+      }
+      return conn;
+    } catch (IOException e) {
+      throw new RestException("Failed to open connection to " + url, e);
     }
   }
 }

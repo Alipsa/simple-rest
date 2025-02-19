@@ -1,9 +1,10 @@
 # Release history
 
-### ver 1.0.6, In progress
+### ver 1.1.0, In progress
 - Upgrade jackson 2.14.2 -> 2.18.2
 - Upgrade jetty 11.0.14 -> 11.0.24
 - Add support for https
+- Require java 17 or later
 
 ### ver 1.0.5, 2023-03-19
 - Add RequestMethod with static constants for all Http Request methods
