@@ -1,3 +1,6 @@
+/**
+ * Module definition for simple-rest
+ */
 module se.alipsa.simplerest {
   requires com.fasterxml.jackson.core;
   requires com.fasterxml.jackson.databind;

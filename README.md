@@ -2,11 +2,10 @@
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/se.alipsa/simple-rest/badge.svg)](https://maven-badges.herokuapp.com/maven-central/se.alipsa/simple-rest)
 [![javadoc](https://javadoc.io/badge2/se.alipsa/simple-rest/javadoc.svg)](https://javadoc.io/doc/se.alipsa/simple-rest)
 
-Simple, modular Rest library for java 11+
+Simple, modular Rest library for java 17+
 
 When creating modular (jigsaw) applications, none of the existing rest libraries for java works well.
-Simple-rest is a modular (as in jigsaw), straight forward library for rest clients (the module name is
-`se.alipsa.simplerest`).
+Simple-rest is a modular (as in jigsaw), straight forward library for rest clients (the module name is `se.alipsa.simplerest`).
 
 The API is build around the se.alipsa.simplerest.RestClient and the se.alipsa.simplerest.Response classes where the
 RestClient handles the request and the Response class (for the most part) handles the response.
