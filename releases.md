@@ -1,6 +1,6 @@
 # Release history
 
-### ver 1.1.0, In progress
+### ver 1.1.0, 2025-02-20
 - Upgrade jackson 2.14.2 -> 2.18.2
 - Upgrade jetty 11.0.14 -> 11.0.24
 - Add support for https
