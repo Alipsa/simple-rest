@@ -114,4 +114,16 @@ public class SimpleRestTest {
     //System.out.println(response.getHeaders());
     assertEquals("GET, HEAD, POST, PUT, DELETE, TRACE, OPTIONS", response.getHeader(ALLOW));
   }
+
+  @Test
+  public void testSslExternal() throws RestException {
+    // Should work both with all trusted and OS trusted CA
+    var url = "https://www.sunet.se";
+    var rcOs = new RestClient(false);
+    var osResponse = rcOs.get(url);
+
+    var rcAll = new RestClient(true);
+    var allResponse = rcAll.get(url);
+    assertEquals(allResponse, osResponse);
+  }
 }

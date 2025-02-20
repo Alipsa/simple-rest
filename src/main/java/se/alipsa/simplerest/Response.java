@@ -4,8 +4,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * The Response class is a core part of the simple-rest api.
@@ -136,5 +138,20 @@ public class Response {
   @Override
   public String toString() {
     return getResponseCode() + ", " + getPayload();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (! (o instanceof Response other)) {
+      return false;
+    }
+    return getResponseCode() == other.getResponseCode() && String.valueOf(getPayload()).equals(other.getPayload());
+  }
+
+  @Override
+  public int hashCode() {
+    int result = Objects.hashCode(getPayload());
+    result = 31 * result + getResponseCode();
+    return result;
   }
 }
