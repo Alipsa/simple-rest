@@ -9,7 +9,6 @@ module test.alipsa.simplerest {
   requires org.junit.platform.engine;
   requires com.fasterxml.jackson.core;
   requires com.fasterxml.jackson.databind;
-  exports se.alipsa.simplerest;
   exports test.alipsa.simplerest;
   exports test.alipsa.simplerest.model;
   exports test.alipsa.simplerest.servlets;

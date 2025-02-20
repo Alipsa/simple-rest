@@ -1,7 +1,10 @@
 package test.alipsa.simplerest;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static se.alipsa.simplerest.CommonHeaders.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+import static se.alipsa.simplerest.CommonHeaders.ALLOW;
+import static se.alipsa.simplerest.CommonHeaders.CONTENT_LENGTH;
+import static se.alipsa.simplerest.CommonHeaders.CONTENT_TYPE;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.eclipse.jetty.server.Server;
@@ -14,17 +17,13 @@ import se.alipsa.simplerest.Response;
 import se.alipsa.simplerest.RestClient;
 import se.alipsa.simplerest.RestException;
 import test.alipsa.simplerest.model.Company;
-import test.alipsa.simplerest.servlets.ComplexServlet;
 import test.alipsa.simplerest.servlets.SimpleServlet;
-
-import java.util.List;
 
 public class SimpleRestTest {
 
   private static Server server;
   private static String serverUrl;
   private static RestClient restClient;
-
 
 
   @BeforeAll
@@ -36,7 +35,7 @@ public class SimpleRestTest {
     server.addConnector(connector);
 
     ServletContextHandler context = new ServletContextHandler();
-    context.addServlet(SimpleServlet.class,"/simple/*");
+    context.addServlet(SimpleServlet.class, "/simple/*");
     server.setHandler(context);
 
     server.start();
@@ -46,7 +45,7 @@ public class SimpleRestTest {
       host = "localhost";
     }
     int port = connector.getLocalPort();
-    serverUrl = String.format("http://%s:%d/",host,port);
+    serverUrl = String.format("http://%s:%d/", host, port);
     restClient = new RestClient();
   }
 
@@ -54,12 +53,11 @@ public class SimpleRestTest {
   public static void stopJetty() {
     try {
       server.stop();
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       fail(e);
     }
   }
-  
+
   @Test
   public void simpleGetTest() throws RestException, JsonProcessingException {
     var response = restClient.get(serverUrl + "simple");
@@ -75,55 +73,79 @@ public class SimpleRestTest {
   }
 
   @Test
-  public void simplePostTest() throws RestException, JsonProcessingException {
-    Company company = new Company();
-    company.setName("Creative Design");
-    var response = restClient.post(serverUrl + "simple", company);
-    Company c = response.getObject(Company.class);
-    assertEquals("Creative Design", c.getName(), "Company name");
-    assertEquals(191919, c.getNumber(), "company number");
+  public void simplePostTest() throws JsonProcessingException {
+    try {
+      Company company = new Company();
+      company.setName("Creative Design");
+      var response = restClient.post(serverUrl + "simple", company);
+      Company c = response.getObject(Company.class);
+      assertEquals("Creative Design", c.getName(), "Company name");
+      assertEquals(191919, c.getNumber(), "company number");
+    } catch (RestException e) {
+      fail(e);
+    }
   }
 
   @Test
-  public void simplePutTest() throws JsonProcessingException, RestException {
-    Company company = new Company("Creative Design", 191919);
-    var response = restClient.put(serverUrl + "simple", company);
-    Company c = response.getObject(Company.class);
-    assertEquals("Creative Design", c.getName(), "Company name");
-    assertEquals(191919, c.getNumber(), "company number");
+  public void simplePutTest() throws JsonProcessingException {
+    try {
+      Company company = new Company("Creative Design", 191919);
+      var response = restClient.put(serverUrl + "simple", company);
+      Company c = response.getObject(Company.class);
+      assertEquals("Creative Design", c.getName(), "Company name");
+      assertEquals(191919, c.getNumber(), "company number");
+    } catch (RestException e) {
+      fail(e);
+    }
   }
 
   @Test
-  public void simpleDeleteTest() throws RestException {
-    var response = restClient.delete(serverUrl + "simple/company/123");
-    assertEquals(204, response.getResponseCode(), "delete /simple/company/123, response Code");
-    response = restClient.delete(serverUrl + "simple/company/345");
-    assertEquals(404, response.getResponseCode(), "delete /simple/company/345, response Code");
+  public void simpleDeleteTest() {
+    try {
+      var response = restClient.delete(serverUrl + "simple/company/123");
+      assertEquals(204, response.getResponseCode(), "delete /simple/company/123, response Code");
+      response = restClient.delete(serverUrl + "simple/company/345");
+      assertEquals(404, response.getResponseCode(), "delete /simple/company/345, response Code");
+    } catch (RestException e) {
+      fail(e);
+    }
   }
 
   @Test
-  public void simpleHeadTest() throws RestException {
-    Response response = restClient.head(serverUrl + "simple");
-    assertEquals("27", response.getHeader(CONTENT_LENGTH), "Content-Length");
-    assertEquals("application/json", response.getHeader(CONTENT_TYPE));
+  public void simpleHeadTest() {
+    try {
+      Response response = restClient.head(serverUrl + "simple");
+      assertEquals("27", response.getHeader(CONTENT_LENGTH), "Content-Length");
+      assertEquals("application/json", response.getHeader(CONTENT_TYPE));
+    } catch (RestException e) {
+      fail(e);
+    }
   }
 
   @Test
-  public void simpleOptionsTest() throws RestException {
-    Response response = restClient.options(serverUrl + "simple");
-    //System.out.println(response.getHeaders());
-    assertEquals("GET, HEAD, POST, PUT, DELETE, TRACE, OPTIONS", response.getHeader(ALLOW));
+  public void simpleOptionsTest() {
+    try {
+      Response response = restClient.options(serverUrl + "simple");
+      //System.out.println(response.getHeaders());
+      assertEquals("GET, HEAD, POST, PUT, DELETE, TRACE, OPTIONS", response.getHeader(ALLOW));
+    } catch (RestException e) {
+      fail(e);
+    }
   }
 
   @Test
-  public void testSslExternal() throws RestException {
-    // Should work both with all trusted and OS trusted CA
-    var url = "https://www.sunet.se";
-    var rcOs = new RestClient(false);
-    var osResponse = rcOs.get(url);
+  public void testSslExternal() {
+    try {
+      // Should work both with all trusted and OS trusted CA
+      var url = "https://www.sunet.se";
+      var rcOs = new RestClient(false);
+      var osResponse = rcOs.get(url);
 
-    var rcAll = new RestClient(true);
-    var allResponse = rcAll.get(url);
-    assertEquals(allResponse, osResponse);
+      var rcAll = new RestClient(true);
+      var allResponse = rcAll.get(url);
+      assertEquals(allResponse, osResponse);
+    } catch (RestException e) {
+      fail(e);
+    }
   }
 }
