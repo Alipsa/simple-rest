@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -71,6 +70,15 @@ public class Response {
     return mapper.readValue(getPayload(), mapper.getTypeFactory().constructCollectionType(List.class, returnClass));
   }
 
+  /**
+   * Converts the json payload into a List of Java objects dealing with non primitives such as Lists and Maps.
+   * Example: <code>TypeReference ref = new TypeReference&lt;List&gt;BigDecimal&gt;&gt;() { };</code>
+   *
+   * @param type the type reference to used when mapping
+   * @param customMapper optional ObjectMapper to use
+   * @return an Object of the class defined in the TypeReference
+   * @throws JsonProcessingException  if the conversion failed.
+   */
   public <T> T getForType(TypeReference<T> type, ObjectMapper... customMapper) throws JsonProcessingException {
     ObjectMapper mapper = customMapper.length > 0 ? customMapper[0] : objectMapper;
     return mapper.reader().forType(type).readValue(getPayload());

@@ -1,5 +1,8 @@
 package se.alipsa.simplerest;
 
+/**
+ * Enumerates the various http request methods.
+ */
 public class RequestMethod {
   /** a get request */
   public static final String GET = "GET";

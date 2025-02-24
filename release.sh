@@ -9,5 +9,5 @@ if [[ -f ~/.sdkman/bin/sdkman-init.sh ]]; then
   fi
 fi
 
-mvn clean site deploy
+mvn -Prelease clean site deploy
 
