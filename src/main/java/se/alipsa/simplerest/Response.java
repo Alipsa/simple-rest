@@ -136,7 +136,19 @@ public class Response {
    * @return the value of the header with the name mathing the param
    */
   public String getHeader(String headerName) {
+    if (headers == null) {
+      return null;
+    }
     List<String> values = headers.get(headerName);
+    if (values == null) {
+      for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
+        String key = entry.getKey();
+        if (key != null && key.equalsIgnoreCase(headerName)) {
+          values = entry.getValue();
+          break;
+        }
+      }
+    }
     if (values == null || values.isEmpty()) {
       return null;
     }
@@ -153,13 +165,12 @@ public class Response {
     if (! (o instanceof Response other)) {
       return false;
     }
-    return getResponseCode() == other.getResponseCode() && String.valueOf(getPayload()).equals(other.getPayload());
+    return getResponseCode() == other.getResponseCode()
+        && Objects.equals(getPayload(), other.getPayload());
   }
 
   @Override
   public int hashCode() {
-    int result = Objects.hashCode(getPayload());
-    result = 31 * result + getResponseCode();
-    return result;
+    return Objects.hash(getPayload(), getResponseCode());
   }
 }

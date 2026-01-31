@@ -10,6 +10,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
@@ -130,29 +131,38 @@ public class RestClient {
    * @throws RestException if something goes wrong
    */
   public byte[] getContentAsBytes(String urlString) throws RestException {
+    HttpURLConnection conn = null;
     try {
       URL url = new URL(urlString);
-      HttpURLConnection conn = openConnection(url);
+      conn = openConnection(url);
       conn.setRequestMethod(GET);
       conn.connect();
-      if (conn.getResponseCode() != 200) {
-        throw new RestException("GET call to " + urlString + " failed: HTTP error code = " + conn.getResponseCode());
+      int responseCode = conn.getResponseCode();
+      if (responseCode != 200) {
+        String errorBody = readErrorBody(conn);
+        if (!errorBody.isEmpty()) {
+          throw new RestException("GET call to " + urlString + " failed: HTTP error code = "
+              + responseCode + ", body: " + errorBody.trim());
+        }
+        throw new RestException("GET call to " + urlString + " failed: HTTP error code = " + responseCode);
       }
       ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
-      InputStream is = url.openStream ();
-      byte[] byteChunk = new byte[4096];
-      int n;
-
-      while ( (n = is.read(byteChunk)) > 0 ) {
-        baos.write(byteChunk, 0, n);
+      try (InputStream is = conn.getInputStream()) {
+        byte[] byteChunk = new byte[4096];
+        int n;
+        while ((n = is.read(byteChunk)) > 0) {
+          baos.write(byteChunk, 0, n);
+        }
       }
-      is.close();
-      conn.disconnect();
       return baos.toByteArray();
     }
     catch (IOException e) {
       throw new RestException("Failed to get content as bytes from " + urlString, e);
+    } finally {
+      if (conn != null) {
+        conn.disconnect();
+      }
     }
   }
 
@@ -196,10 +206,10 @@ public class RestClient {
    */
   public Response get(String urlString, Object payload, Map<String, String> headers, String... acceptType) throws RestException {
     String accept = acceptType.length > 0 ? acceptType[0] : MediaType.APPLICATION_JSON.getValue();
-    StringBuilder writer = new StringBuilder();
+    HttpURLConnection conn = null;
     try {
       URL url = new URL(urlString);
-      HttpURLConnection conn = openConnection(url);
+      conn = openConnection(url);
       conn.setRequestMethod(GET);
       conn.setRequestProperty(ACCEPT, accept);
       if (headers != null) {
@@ -217,24 +227,31 @@ public class RestClient {
           input = mapper.writeValueAsString(payload);
         }
         conn.connect();
-        OutputStream os = conn.getOutputStream();
-        os.write(input.getBytes());
-        os.flush();
-        os.close();
+        try (OutputStream os = conn.getOutputStream()) {
+          os.write(input.getBytes(StandardCharsets.UTF_8));
+          os.flush();
+        }
       } else {
         conn.connect();
       }
       int responseCode = conn.getResponseCode();
       var responseHeaders = conn.getHeaderFields();
-      BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-      String line;
-      while ((line = br.readLine()) != null) {
-        writer.append(line).append('\n');
+      if (responseCode >= 400) {
+        String errorBody = readErrorBody(conn);
+        if (!errorBody.isEmpty()) {
+          throw new RestException("Failed to call GET on " + urlString + ": HTTP error code = "
+              + responseCode + ", body: " + errorBody.trim());
+        }
+        throw new RestException("Failed to call GET on " + urlString + ": HTTP error code = " + responseCode);
       }
-      conn.disconnect();
-      return new Response(writer.toString(), responseCode, responseHeaders, mapper);
+      String body = readAnyBody(conn);
+      return new Response(body, responseCode, responseHeaders, mapper);
     } catch (IOException e) {
       throw new RestException("Failed to call GET on " + urlString, e);
+    } finally {
+      if (conn != null) {
+        conn.disconnect();
+      }
     }
   }
 
@@ -309,10 +326,10 @@ public class RestClient {
    * @throws RestException if something goes wrong
    */
   public Response delete(String urlString, Map<String, String> requestHeaders) throws RestException {
-    StringBuilder writer = new StringBuilder();
+    HttpURLConnection conn = null;
     try {
       URL url = new URL(urlString);
-      HttpURLConnection conn = openConnection(url);
+      conn = openConnection(url);
       conn.setDoOutput(false);
       conn.setRequestMethod(DELETE);
       if (requestHeaders == null || !requestHeaders.containsKey(CONTENT_TYPE)) {
@@ -325,24 +342,18 @@ public class RestClient {
       int responseCode = conn.getResponseCode();
       var headers = conn.getHeaderFields();
 
-      InputStream is = null;
       try {
-        is = conn.getInputStream();
+        String body = readAnyBody(conn);
+        return new Response(body, responseCode, headers, mapper);
       } catch (IOException e) {
-        // no content
+        return new Response("", responseCode, headers, mapper);
       }
-      if (is != null) {
-        BufferedReader br = new BufferedReader(new InputStreamReader(is));
-        String line;
-        while ((line = br.readLine()) != null) {
-          writer.append(line).append('\n');
-        }
-        is.close();
-      }
-      conn.disconnect();
-      return new Response(writer.toString(), responseCode, headers, mapper);
     } catch (IOException e) {
       throw new RestException("Failed to call DELETE on " + urlString, e);
+    } finally {
+      if (conn != null) {
+        conn.disconnect();
+      }
     }
   }
 
@@ -414,10 +425,10 @@ public class RestClient {
   }
 
   private Response putPost(String urlString, Object payload, Map<String, String> requestHeaders, String method) throws RestException {
-    StringBuilder writer = new StringBuilder();
+    HttpURLConnection conn = null;
     try {
       URL url = new URL(urlString);
-      HttpURLConnection conn = openConnection(url);
+      conn = openConnection(url);
       conn.setRequestMethod(method);
       if (requestHeaders == null || !requestHeaders.containsKey(CONTENT_TYPE)) {
         conn.setRequestProperty(CONTENT_TYPE, MediaType.APPLICATION_JSON.getValue());
@@ -435,36 +446,30 @@ public class RestClient {
           input = mapper.writeValueAsString(payload);
         }
         conn.connect();
-        OutputStream os = conn.getOutputStream();
-        os.write(input.getBytes());
-        os.flush();
-        os.close();
+        try (OutputStream os = conn.getOutputStream()) {
+          os.write(input.getBytes(StandardCharsets.UTF_8));
+          os.flush();
+        }
       } else {
         conn.connect();
       }
 
       int responseCode = conn.getResponseCode();
       var headers = conn.getHeaderFields();
-      InputStream is = null;
+      String body = "";
       try {
-        is = conn.getInputStream();
+        body = readAnyBody(conn);
       } catch (IOException e) {
         // no content
       }
-      if (is != null) {
-        BufferedReader br = new BufferedReader(new InputStreamReader(is));
-
-        String line;
-        while ((line = br.readLine()) != null) {
-          writer.append(line).append('\n');
-        }
-        is.close();
-      }
-      conn.disconnect();
-      return new Response(writer.toString(), responseCode, headers, mapper);
+      return new Response(body, responseCode, headers, mapper);
 
     } catch (IOException e) {
       throw new RestException("Failed to call " + method + " on " + urlString, e);
+    } finally {
+      if (conn != null) {
+        conn.disconnect();
+      }
     }
   }
 
@@ -478,6 +483,37 @@ public class RestClient {
       return conn;
     } catch (IOException e) {
       throw new RestException("Failed to open connection to " + url, e);
+    }
+  }
+
+  private String readAnyBody(HttpURLConnection conn) throws IOException {
+    try {
+      return readBody(conn.getInputStream());
+    } catch (IOException e) {
+      InputStream errorStream = conn.getErrorStream();
+      if (errorStream == null) {
+        throw e;
+      }
+      return readBody(errorStream);
+    }
+  }
+
+  private String readErrorBody(HttpURLConnection conn) throws IOException {
+    InputStream errorStream = conn.getErrorStream();
+    return readBody(errorStream);
+  }
+
+  private String readBody(InputStream inputStream) throws IOException {
+    if (inputStream == null) {
+      return "";
+    }
+    try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+      StringBuilder writer = new StringBuilder();
+      String line;
+      while ((line = br.readLine()) != null) {
+        writer.append(line).append('\n');
+      }
+      return writer.toString();
     }
   }
 }
