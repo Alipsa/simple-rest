@@ -1,5 +1,6 @@
 package se.alipsa.simplerest;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Map;
 
@@ -26,7 +27,8 @@ public class CommonHeaders {
    * @return a value used for the authorization header including the base 64 encoded string containing the username and password
    */
   public static String basicAuth(String username, String password) {
-    return "Basic " + Base64.getEncoder().encodeToString((username + ":" + password).getBytes());
+    return "Basic " + Base64.getEncoder()
+        .encodeToString((username + ":" + password).getBytes(StandardCharsets.UTF_8));
   }
 
   /**

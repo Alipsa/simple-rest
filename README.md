@@ -1,5 +1,5 @@
 # simple-rest
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/se.alipsa/simple-rest/badge.svg)](https://maven-badges.herokuapp.com/maven-central/se.alipsa/simple-rest)
+[![Maven Central](https://maven-badges.sml.io/maven-central/se.alipsa/simple-rest/badge.svg)](https://maven-badges.sml.io/maven-central/se.alipsa/simple-rest)
 [![javadoc](https://javadoc.io/badge2/se.alipsa/simple-rest/javadoc.svg)](https://javadoc.io/doc/se.alipsa/simple-rest)
 
 Simple, modular Rest library for java 17+

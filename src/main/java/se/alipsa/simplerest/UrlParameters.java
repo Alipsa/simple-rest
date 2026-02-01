@@ -23,6 +23,9 @@ public class UrlParameters {
     if (params.length == 0) {
       return "";
     }
+    if (params.length % 2 != 0) {
+      throw new IllegalArgumentException("Parameters must be supplied as key/value pairs");
+    }
     String up = "?";
     int i = 0;
     for (String param : params) {
