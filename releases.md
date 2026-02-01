@@ -1,5 +1,8 @@
 # Release history
 
+### ver 1.1.2, in progress
+- io.github.hakky54:sslcontext-kickstart 9.2.1 -> io.github.hakky54:ayza 10.0.3
+
 ### ver 1.1.1, 2026-02-01
 - Fixed connection/body handling and UTF‑8 usage across request/response flows, and ensured error bodies are read when available while preserving existing GET error behaviour.
 - Made basic auth encoding deterministic (UTF‑8).
