@@ -1,5 +1,12 @@
 # Release history
 
+### ver 1.1.1, 2026-02-01
+- Fixed connection/body handling and UTF‑8 usage across request/response flows, and ensured error bodies are read when available while preserving existing GET error behaviour.
+- Made basic auth encoding deterministic (UTF‑8).
+- Corrected Response.equals/hashCode and made header lookup null‑safe and case‑insensitive.
+- Added parameter count validation for URL params and tests for the new behaviours.
+- Upgrade Jackson 2.18.2 -> 2.21.0
+
 ### ver 1.1.0, 2025-02-20
 - Upgrade jackson 2.14.2 -> 2.18.2
 - Upgrade jetty 11.0.14 -> 11.0.24
